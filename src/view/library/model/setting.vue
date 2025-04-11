@@ -1,0 +1,334 @@
+<template>
+  <a-drawer title="文库设置" :placement="placement" :closable="false" :visible="visible" @close="onClose" width="800px" class="setting-drawer">
+    <div class="know-set-body">
+      <div class="nav-list">
+        <div :class="indexNav == index ? 'nav-item nav-active' : 'nav-item'" v-for="(item, index) in settingNav" @click="indexNav = index">
+          <component :key="index" :is="item.icon" class="nav-icon" />{{ item.name }}
+        </div>
+      </div>
+      <div class="nav-body">
+        <div class="nav-title">文库信息</div>
+        <div class="nav-content">
+          <div class="baseinfo-box">
+            <a-form :model="formState" name="basic" autocomplete="off" @finish="onFinish" @finishFailed="onFinishFailed" layout="vertical">
+              <a-form-item label="文库名称" name="name" :rules="[{ required: true, message: '请输入文库名称' }]">
+                <a-input v-model:value="formState.name" placeholder="请输入文库名称" />
+              </a-form-item>
+
+              <a-form-item label="文库描述" name="desc" :rules="[{ required: true, message: '请输入文库描述' }]">
+                <a-textarea v-model:value="formState.desc" placeholder="请输入文库描述" :rows="4" />
+              </a-form-item>
+            </a-form>
+          </div>
+          <div class="auth-box">
+            <div class="item-title sticky-header">
+              <span class="title">成员权限</span>
+              <span class="add-auth"> <PlusOutlined />添加权限组 </span>
+            </div>
+            <div class="permission-content-item">
+              <div class="add-or-del-box">
+                <div class="add" @click="addPerson()"><PlusOutlined />添加成员</div>
+                <div class="del"><DeleteOutlined />删除权限组</div>
+              </div>
+              <div class="persion-list-box"></div>
+              <div class="checked-auth-list">
+                <div>
+                  <a-checkbox v-model:checked="checkAll" :indeterminate="indeterminate" @change="onCheckAllChange"> 全选 </a-checkbox>
+                </div>
+                <a-checkbox-group v-model:value="checkedList">
+                  <template #default>
+                    <a-row>
+                      <a-col :span="8" v-for="option in settingOptin">
+                        <a-checkbox :value="option.value">{{ option.name }}</a-checkbox>
+                      </a-col>
+                    </a-row>
+                  </template>
+                </a-checkbox-group>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="button-box">
+          <a-button type="primary">保存设置</a-button>
+          <a-button style="margin-left: 12px">取消</a-button>
+        </div>
+      </div>
+    </div>
+  </a-drawer>
+  <PersonnelSelection ref="personRef"></PersonnelSelection>
+</template>
+
+<script setup>
+  import PersonnelSelection from "../../../components/personnelSelection.vue";
+  import { ref, watch } from "vue";
+  import { FileTextOutlined, FileSearchOutlined, BellOutlined, InteractionOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
+  const personRef = ref(null);
+  const settingNav = ref([
+    {
+      name: "文库信息",
+      icon: FileTextOutlined,
+    },
+    {
+      name: "文库权限",
+      icon: FileSearchOutlined,
+    },
+    {
+      name: "消息设置",
+      icon: BellOutlined,
+    },
+    {
+      name: "文库转移",
+      icon: InteractionOutlined,
+    },
+  ]);
+  const formState = ref({
+    name: "",
+    desc: "",
+    remember: true,
+  });
+  const onFinish = (values) => {
+    console.log("Success:", values);
+  };
+  const settingOptin = ref([
+    {
+      name: "文档置顶",
+      value: 1,
+    },
+    {
+      name: "文档分享",
+      value: 2,
+    },
+    {
+      name: "文库删除",
+      value: 3,
+    },
+    {
+      name: "文库编辑",
+      value: 4,
+    },
+    {
+      name: "文库下载",
+      value: 5,
+    },
+    {
+      name: "文档排序",
+      value: 6,
+    },
+    {
+      name: "文库删除",
+      value: 7,
+    },
+    {
+      name: "新建文档",
+      value: 8,
+    },
+    {
+      name: "文档下载",
+      value: 9,
+    },
+    {
+      name: "文档编辑",
+      value: 10,
+    },
+    {
+      name: "文档移动",
+      value: 11,
+    },
+    {
+      name: "文档消息设置",
+      value: 12,
+    },
+    {
+      name: "文库权限设置",
+      value: 13,
+    },
+    {
+      name: "文库消息设置",
+      value: 14,
+    },
+    {
+      name: "文档权限设置",
+      value: 15,
+    },
+  ]);
+  const checkedList = ref([]);
+  const indeterminate = ref(false);
+  const checkAll = ref(false);
+  const onCheckAllChange = (e) => {
+    checkedList.value = checkAll.value ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] : [];
+    indeterminate.value = false;
+  };
+  const addPerson = () => {
+    personRef.value.showPersonVisible();
+  };
+  const onFinishFailed = (errorInfo) => {
+    console.log("Failed:", errorInfo);
+  };
+  const indexNav = ref(0);
+  const visible = ref(false);
+  const placement = ref("right");
+  const onClose = () => {
+    visible.value = false;
+  };
+  const showDrawer = () => {
+    visible.value = true;
+  };
+
+  watch(
+    () => checkedList.value,
+    (val) => {
+      indeterminate.value = !!val.length && val.length < settingOptin.value.length;
+      checkAll.value = val.length === settingOptin.value.length;
+    }
+  );
+  defineExpose({
+    showDrawer,
+  });
+</script>
+
+<style scoped>
+  .setting-drawer .know-set-body {
+    display: flex;
+    height: 100%;
+    width: 100%;
+  }
+
+  .know-set-body .nav-list {
+    width: 168px;
+    height: 100%;
+    background: #f5f6f7;
+    padding: 23px 8px 0;
+    box-sizing: border-box;
+  }
+
+  .know-set-body .nav-body {
+    width: calc(100% - 168px);
+    height: 100%;
+  }
+
+  .nav-content .baseinfo-box,
+  .nav-content .auth-box {
+    padding: 15px 24px 16px;
+  }
+
+  .know-set-body .nav-list .nav-item {
+    border-radius: 4px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-family: SourceHanSansCN-Regular;
+    color: #363b4c;
+    padding: 0 16px;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+
+  .know-set-body .nav-list .nav-active {
+    background: #ddeaff !important;
+    color: #1e6fff;
+  }
+
+  .know-set-body .nav-list .nav-item + .nav-item {
+    margin-top: 14px;
+  }
+
+  .setting-drawer .know-set-body .nav-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+  }
+
+  .nav-body .nav-title {
+    font-size: 17px;
+    color: #363b4c;
+    padding: 24px 24px 8px;
+    font-weight: 600;
+  }
+
+  .nav-body .button-box {
+    padding: 14px 24px;
+  }
+
+  .nav-body .sticky-header {
+    position: sticky;
+    top: 0;
+    margin: 0;
+    padding: 16px 0 8px;
+    background-color: #fff;
+    z-index: 9;
+  }
+
+  .auth-box .item-title {
+    color: #363b4c;
+    font-size: 14px;
+    margin-bottom: 8px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-body .item-title .title {
+    color: #363b4c;
+    font-size: 14px;
+  }
+
+  .nav-body .item-title .add-auth {
+    color: #1e6fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .permission-content-item + .permission-content-item {
+    margin-top: 16px;
+  }
+
+  .permission-content-item {
+    padding: 16px 16px 16px 21px;
+    background-color: #f5f6f7;
+    border-radius: 6px;
+  }
+
+  .permission-content-item .add-or-del-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .permission-content-item .add-or-del-box .add {
+    width: 108px;
+    height: 32px;
+    background: #e4edff;
+    border-radius: 4px;
+    color: #1e6fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: SourceHanSansCN-Regular;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .permission-content-item .add-or-del-box .del {
+    cursor: pointer;
+    font-family: SourceHanSansCN-Regular;
+    font-size: 14px;
+    color: #ff194c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .permission-content-item .persion-list-box {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    grid-column-gap: 16px;
+    grid-row-gap: 16px;
+  }
+</style>
