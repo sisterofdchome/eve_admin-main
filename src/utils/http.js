@@ -14,7 +14,7 @@ instace.interceptors.request.use(
   (config) => {
     config.headers["Authorization"] =
       "Basic " +
-      "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6Im1vYmlsZSIsIm1hbmFnZU9yZyI6IjEwMDAwMDE3NjY0NDMwIiwiZXhwIjoxNzQ0MzU4Mjc2LCJpYXQiOjE3NDQzMzMwNzZ9.oWQLUDj1x7RzFbLapABFxvr9SNOdswO9pjB6ZYRZ8GLYNir6FFOfFbkrZujclaNF-hXYoCPKJVCzlc_HbuzU_g"; // 这里自定义配置，这里传的是token
+      "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6Im1vYmlsZSIsIm1hbmFnZU9yZyI6IjEwMDAwMDE3NjY0NDMwIiwiZXhwIjoxNzQ0NjE2ODY5LCJpYXQiOjE3NDQ1OTE2Njl9.Zu0gOk8R_KJDKP4VBpebSdpvzvuVdFddRhScHRVEuuxPgUudH5decAKhYfBq0v2kpDq930QYEMrDuwbXjlo25A"; // 这里自定义配置，这里传的是token
     config.headers["Content-Type"] = "application/x-www-form-urlencoded";
     return config;
   },

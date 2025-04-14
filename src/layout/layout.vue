@@ -53,7 +53,7 @@
         <MenuUnfoldOutlined v-if="sideCollapsed" class="trigger" @click="appAction.changeCollapsed" />
         <MenuFoldOutlined v-else class="trigger" @click="appAction.changeCollapsed" />
         <Header @updateSuccess="handleUpdateSuccess" :value="selectedValue"></Header>
-        <a-switch size="small" :checked="theme === 'dark'" checked-children="Dark" un-checked-children="Light" @change="appAction.changeTheme" class="themeSwitchMenu" />
+        <!-- <a-switch size="small" :checked="theme === 'dark'" checked-children="Dark" un-checked-children="Light" @change="appAction.changeTheme" class="themeSwitchMenu" /> -->
       </a-layout-header>
       <!-- 右侧header结束 -->
       <!-- 右侧页面主体开始 -->
@@ -80,7 +80,7 @@
     DownloadOutlined,
   } from "@ant-design/icons-vue";
   import Header from "./Header.vue";
-  import { ref, h, onMounted, reactive } from "vue";
+  import { ref, h, onMounted, reactive, watch } from "vue";
   import { useRouter } from "vue-router";
   import { storeToRefs } from "pinia";
   import { postlibraryapi } from "../api/index.js";
@@ -115,7 +115,10 @@
     if (item.url) {
       router.push({
         path: item.url, // 直接使用配置的 url
-        query: { id: item.key },
+        query: {
+          id: item.key,
+          title: item.title,
+        },
       });
     }
     //
@@ -124,13 +127,13 @@
   const menuList = ref([
     {
       title: "首页",
-      key: "1",
+      key: "-11",
       icon: "home",
-      url: "/",
+      url: "/index",
     },
     {
       title: "全部文库",
-      key: "2",
+      key: "-12",
       icon: "svg-wxz",
       url: "/allLibrary",
       isExpand: false,
@@ -138,49 +141,49 @@
     },
     {
       title: "我的文库",
-      key: "9",
+      key: "-13",
       icon: "svg-wxz",
       url: "/",
       isExpand: false,
       children: [
-        {
-          title: "文库-4",
-          key: "8",
-          icon: "svg-wxz",
-          url: "/library",
-        },
-        {
-          title: "文库-5",
-          key: "6",
-          icon: "svg-wxz",
-          url: "/library",
-        },
-        {
-          title: "文库-6",
-          key: "7",
-          icon: "svg-wxz",
-          url: "/library",
-        },
+        // {
+        //   title: "文库-4",
+        //   key: "8",
+        //   icon: "svg-wxz",
+        //   url: "/library",
+        // },
+        // {
+        //   title: "文库-5",
+        //   key: "6",
+        //   icon: "svg-wxz",
+        //   url: "/library",
+        // },
+        // {
+        //   title: "文库-6",
+        //   key: "7",
+        //   icon: "svg-wxz",
+        //   url: "/library",
+        // },
       ],
     },
     {
       title: "收藏",
-      key: "/collect",
+      key: "-14",
       icon: "collect",
-      url: "/",
+      url: "/collect",
     },
     {
       title: "回收站",
-      key: "/recycleBin",
+      key: "-15",
       icon: "recycle",
-      url: "/",
+      url: "/recycle",
     },
   ]);
 
   onMounted(() => {
     leftLibraryTree();
   });
-
+  // 获取文库列表
   const leftLibraryTree = async () => {
     const formData = {
       type: "list",
@@ -212,6 +215,18 @@
       path: key,
     });
   };
+  watch(
+    () => appStore.selectedKeys,
+    () => {
+      menuIndex.value = selectedKeys.value; // 重新获取当前路由的文件列表
+    }
+  );
+  watch(
+    () => appStore.refreshKey,
+    () => {
+      leftLibraryTree(); // 重新获取当前路由的文件列表
+    }
+  );
 </script>
 <style scoped>
   .silder-item .title .menu-icon {

@@ -10,9 +10,9 @@ import pinia from '@/store'
 const menu = [{
 		name: "首页",
 		label: '首页',
-		key: '/dashboard',
+		key: '/index',
 		icon: 'DashboardOutlined',
-		component: 'Dashboard',
+		component: 'index',
 	},
 	{
 		name: '全部文库',
@@ -20,7 +20,7 @@ const menu = [{
 		key: '/allLibrary',
 		icon: 'FolderFilled',
 		isExpand: false,
-		component: 'library',
+		component: 'allLibrary',
 		children: [{
 				name: '文库-1',
 				label: '文库-1',
@@ -44,7 +44,8 @@ const menu = [{
 				url: "/library"
 			}
 		]
-	}, {
+	}, 
+	{
 		name: '我的文库',
 		label: '我的文库',
 		key: '9',
@@ -77,17 +78,15 @@ const menu = [{
 		label: '收藏',
 		key: '/collect',
 		icon: 'TagOutlined',
-		url: "/",
 		component: 'collect',
 		
 	},
 	{
 		name: '回收站',
 		label: '回收站',
-		key: '/recycleBin',
+		key: '/recycle',
 		icon: 'DeleteOutlined',
-		url: "/",
-		component: 'UserList',
+		component: 'recycle',
 	}
 ]
 

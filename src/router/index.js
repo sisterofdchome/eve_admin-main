@@ -29,6 +29,7 @@ router.beforeEach(async (to, from) => {
     userStore.getProfile()
   }
 
+  console.log("to",to)
   // 没有匹配到路由时则跳转到首页
   if (to.matched.length == 0) {
       router.push('/')

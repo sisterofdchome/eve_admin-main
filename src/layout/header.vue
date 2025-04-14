@@ -32,7 +32,7 @@
             <img src="../assets/libary/libary.png" class="type-icon" />
             <div class="type-name">文库</div>
           </div>
-          <div class="type-item" @click="handleLibraryClick('wj')">
+          <div class="type-item" @click="handleFloderClick('wj')">
             <img src="../assets/libary/folder.png" class="type-icon" />
             <div class="type-name">新建文件夹</div>
           </div>
@@ -62,7 +62,7 @@
   </a-modal>
   <!-- 导入上传文件 弹窗 -->
   <a-modal v-model:visible="uploadVisible" title="上传文件" @ok="uploadHandleOk()">
-    <CustomUpload :value="fileList" @display="handleDisplay"></CustomUpload>
+    <CustomUpload name="attachment" :value="fileList" @display="handleDisplay"></CustomUpload>
   </a-modal>
   <TreeSelect ref="treeSelectRef" @selectSuccess="handleSelectSuccess"></TreeSelect>
 </template>
@@ -78,6 +78,7 @@
   import TreeSelect from "../view/library/model/treeSelect.vue";
   import { PlusOutlined, DownloadOutlined } from "@ant-design/icons-vue";
   import { postlibraryapi } from "../api/index";
+  import { storeToRefs } from "pinia";
 
   const appStore = useAppStore();
   const popoverVisible = ref(false);
@@ -89,6 +90,9 @@
   const fileList = ref([]);
   const uploadVisible = ref(false);
   const selectFolderOrLibrary = ref("");
+
+  // 引入appStore中的属性
+  const { selectedKeys } = storeToRefs(appStore);
 
   // 接收父组件传递的 props
   const props = defineProps({
@@ -106,20 +110,43 @@
     console.log(fileList.value);
     console.log(props.value);
   };
-  const handleLibraryClick = (type) => {
+
+  const handleLibraryClick = () => {
     popoverVisible.value = false; // 关闭popover
-    if (type == "wj") {
-      title.value = "文件夹";
-      if (!props.value) {
-        treeSelectRef.value.handleVisible(type);
-      } else {
-        libraryVisible.value = true; // 如果有 value，直接显示新建文件夹模态框
-      }
-    } else if (type == "wk") {
-      title.value = "文库";
-      libraryVisible.value = true;
+    title.value = "文库";
+    libraryVisible.value = true;
+  };
+  const handleFloderClick = (type) => {
+    popoverVisible.value = false; // 关闭popover
+    title.value = "文件夹";
+    if (selectedKeys.value > "0") {
+      libraryVisible.value = true; // 如果大于 0 ，直接显示新建文件夹模态框
+
+      appStore.triggerRefresh(); // 触发全局刷新
+    } else {
+      treeSelectRef.value.handleVisible(type);
     }
   };
+
+  // const handleLibraryClick = (type) => {
+  //   popoverVisible.value = false; // 关闭popover
+  // if (type == "wj") {
+  //   title.value = "文件夹";
+  //   if (props.value > 0) {
+  //     treeSelectRef.value.handleVisible(type);
+  //   } else {
+  //     libraryVisible.value = true; // 如果有 value，直接显示新建文件夹模态框
+  //   }
+  // } else if (type == "wk") {
+  //   title.value = "文库";
+  //   libraryVisible.value = true;
+  // }
+  //   if (selectedKeys.value > "0") {
+  //     libraryVisible.value = true; // 如果大于 0 ，直接显示新建文件夹模态框
+  //   } else {
+  //     treeSelectRef.value.handleVisible(type);
+  //   }
+  // };
   /**
    * @description: 新建文库
    * @param {*}
@@ -163,6 +190,7 @@
   };
 
   const handleDisplay = (data) => {
+    console.log("handleDisplay", data);
     fileList.value = data.value ? JSON.parse(data.value) : [];
   };
 

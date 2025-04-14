@@ -73,7 +73,7 @@
               "Content-Type": "multipart/form-data",
               Authorization:
                 "Bearer " +
-                "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6Im1vYmlsZSIsIm1hbmFnZU9yZyI6IjEwMDAwMDE3NjY0NDMwIiwiZXhwIjoxNzQ0MjE1ODk0LCJpYXQiOjE3NDQxOTA2OTR9.NjgHew4lyjQNo_vNipC3ajcAQIm9rxC2_a33YLz8O88N1oQeuZ18OFU26IodU57PKjXq196CsnhQG7RwHPZQrQ",
+                "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6Im1vYmlsZSIsIm1hbmFnZU9yZyI6IjEwMDAwMDE3NjY0NDMwIiwiZXhwIjoxNzQ0NjE2ODY5LCJpYXQiOjE3NDQ1OTE2Njl9.Zu0gOk8R_KJDKP4VBpebSdpvzvuVdFddRhScHRVEuuxPgUudH5decAKhYfBq0v2kpDq930QYEMrDuwbXjlo25A",
             },
 
             onUploadProgress: (progressEvent) => {

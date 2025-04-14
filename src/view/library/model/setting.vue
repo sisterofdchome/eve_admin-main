@@ -2,26 +2,62 @@
   <a-drawer title="文库设置" :placement="placement" :closable="false" :visible="visible" @close="onClose" width="800px" class="setting-drawer">
     <div class="know-set-body">
       <div class="nav-list">
-        <div :class="indexNav == index ? 'nav-item nav-active' : 'nav-item'" v-for="(item, index) in settingNav" @click="indexNav = index">
+        <div :class="indexNav == index ? 'nav-item nav-active' : 'nav-item'" v-for="(item, index) in settingNav" @click="changeMenu(index)">
           <component :key="index" :is="item.icon" class="nav-icon" />{{ item.name }}
         </div>
       </div>
-      <div class="nav-body">
+      <div class="nav-body" v-if="indexNav == 0">
         <div class="nav-title">文库信息</div>
         <div class="nav-content">
           <div class="baseinfo-box">
-            <a-form :model="formState" name="basic" autocomplete="off" @finish="onFinish" @finishFailed="onFinishFailed" layout="vertical">
-              <a-form-item label="文库名称" name="name" :rules="[{ required: true, message: '请输入文库名称' }]">
-                <a-input v-model:value="formState.name" placeholder="请输入文库名称" />
+            <a-form ref="libraryformRef" :model="formState" name="basic" autocomplete="off" @finish="onFinish" @finishFailed="onFinishFailed" layout="vertical">
+              <a-form-item :label="settingTitle + '名称'" name="classification_name" :rules="[{ required: true, message: '请输入名称' }]">
+                <a-input v-model:value="formState.classification_name" :placeholder="'请输入' + settingTitle + '名称'" />
               </a-form-item>
 
-              <a-form-item label="文库描述" name="desc" :rules="[{ required: true, message: '请输入文库描述' }]">
-                <a-textarea v-model:value="formState.desc" placeholder="请输入文库描述" :rows="4" />
-              </a-form-item>
+              <!-- <a-form-item :label="settingTitle + '描述'" name="description">
+                <a-textarea v-model:value="formState.description" placeholder="请输入文库描述" :rows="4" />
+              </a-form-item> -->
             </a-form>
           </div>
-          <div class="auth-box">
+          <!-- <div class="auth-box">
             <div class="item-title sticky-header">
+              <span class="title">成员权限</span>
+              <span class="add-auth"> <PlusOutlined />添加权限组 </span>
+            </div>
+            <div class="permission-content-item">
+              <div class="add-or-del-box">
+                <div class="add" @click="addPerson()"><PlusOutlined />添加成员</div>
+                <div class="del"><DeleteOutlined />删除权限组</div>
+              </div>
+              <div class="persion-list-box"></div>
+              <div class="checked-auth-list">
+                <div>
+                  <a-checkbox v-model:checked="checkAll" :indeterminate="indeterminate" @change="onCheckAllChange"> 全选 </a-checkbox>
+                </div>
+                <a-checkbox-group v-model:value="checkedList">
+                  <template #default>
+                    <a-row>
+                      <a-col :span="8" v-for="option in settingOptin">
+                        <a-checkbox :value="option.value">{{ option.name }}</a-checkbox>
+                      </a-col>
+                    </a-row>
+                  </template>
+                </a-checkbox-group>
+              </div>
+            </div>
+          </div> -->
+        </div>
+        <div class="button-box">
+          <a-button type="primary" @click="saveHandleOk">保存设置</a-button>
+          <a-button style="margin-left: 12px" @click="visible = false">取消</a-button>
+        </div>
+      </div>
+      <div class="nav-body" v-if="indexNav == 1">
+        <div class="nav-title">文档权限</div>
+        <div class="nav-content">
+          <div class="auth-box">
+            <div class="item-title">
               <span class="title">成员权限</span>
               <span class="add-auth"> <PlusOutlined />添加权限组 </span>
             </div>
@@ -60,35 +96,52 @@
 
 <script setup>
   import PersonnelSelection from "../../../components/personnelSelection.vue";
-  import { ref, watch } from "vue";
+  import { ref, reactive, watch, onMounted } from "vue";
   import { FileTextOutlined, FileSearchOutlined, BellOutlined, InteractionOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
+  import { message } from "ant-design-vue";
+
+  import { postlibraryapi } from "../../../api/index.js";
+  import qs from "qs";
+
+  // 接收父组件传递的 props
+  const props = defineProps({
+    title: {
+      type: String, // 类型可以根据需要调整，例如 Number, Object 等
+      default: "", // 默认值
+    },
+  });
+
+  const libraryformRef = ref();
   const personRef = ref(null);
   const settingNav = ref([
     {
-      name: "文库信息",
+      name: "基础设置",
       icon: FileTextOutlined,
     },
     {
-      name: "文库权限",
+      name: "权限",
       icon: FileSearchOutlined,
     },
-    {
-      name: "消息设置",
-      icon: BellOutlined,
-    },
-    {
-      name: "文库转移",
-      icon: InteractionOutlined,
-    },
+    // {
+    //   name: "消息设置",
+    //   icon: BellOutlined,
+    // },
+    // {
+    //   name: "文库转移",
+    //   icon: InteractionOutlined,
+    // },
   ]);
-  const formState = ref({
-    name: "",
-    desc: "",
-    remember: true,
+  const formState = reactive({
+    classification_name: "",
+    description: "",
   });
+
+  onMounted(() => {});
+
   const onFinish = (values) => {
     console.log("Success:", values);
   };
+  // 权限选项
   const settingOptin = ref([
     {
       name: "文档置顶",
@@ -154,6 +207,8 @@
   const checkedList = ref([]);
   const indeterminate = ref(false);
   const checkAll = ref(false);
+
+  const settingTitle = ref("");
   const onCheckAllChange = (e) => {
     checkedList.value = checkAll.value ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] : [];
     indeterminate.value = false;
@@ -170,8 +225,45 @@
   const onClose = () => {
     visible.value = false;
   };
-  const showDrawer = () => {
+
+  const id_ = ref("");
+  const showDrawer = (item) => {
+    console.log(item);
     visible.value = true;
+
+    settingTitle.value = item.type == "folder" ? "文件夹" : "文档";
+    formState.classification_name = item.name;
+    // formState.description = item.description;
+    settingNav.value[1].name = settingTitle.value + "权限";
+    id_.value = item.id_;
+  };
+  const changeMenu = (index) => {
+    indexNav.value = index;
+  };
+
+  // 定义事件
+  const emit = defineEmits(["updateSuccess"]);
+  const saveHandleOk = async () => {
+    const formData = {
+      type: "update",
+      classification_name: formState.classification_name,
+      id_: id_.value,
+    };
+    const response = await postlibraryapi(qs.stringify(formData)); // 调用接口
+
+    if (response.data.code == 1) {
+      console.log("接口请求成功:", response);
+      message.success(response.data.msg);
+      // 触发事件，传递更新后的数据
+      emit("updateSuccess", {
+        id_: id_.value,
+        name: formState.classification_name,
+      });
+      libraryformRef.value.resetFields();
+      visible.value = false;
+    } else {
+      message.error("更新失败");
+    }
   };
 
   watch(

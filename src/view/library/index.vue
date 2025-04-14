@@ -52,63 +52,71 @@
                           <span class="more-icon">
                             <FormOutlined />
                           </span>
-                          <span class="more-name">编辑(已实现)</span>
+                          <span class="more-name">编辑( √ )</span>
+                        </div>
+                        <div class="more-item" v-if="item.type == 'file'">
+                          <span class="more-icon">
+                            <FormOutlined />
+                          </span>
+                          <span class="more-name">编辑文档</span>
                         </div>
                         <div v-if="item.type == 'file'" class="more-item">
                           <span class="more-icon">
                             <FormOutlined />
                           </span>
-                          <span class="more-name" @click="editHandle(item, index)">重命名(已实现)</span>
+                          <span class="more-name" @click="editHandle(item, index)">重命名( √ )</span>
                         </div>
-                        <div class="more-item">
+                        <div class="more-item" v-if="item.type == 'file'">
                           <span class="more-icon">
                             <DownloadOutlined />
                           </span>
                           <span class="more-name">下载</span>
                         </div>
-                        <div class="more-item">
+                        <!-- <div class="more-item">
                           <span class="more-icon">
                             <LinkOutlined />
                           </span>
                           <span class="more-name">复制链接</span>
-                        </div>
+                        </div> -->
                         <div class="more-line"></div>
-                        <div class="more-item">
+                        <!-- <div class="more-item">
                           <span class="more-icon">
                             <LinkOutlined />
                           </span>
                           <span class="more-name">复制文档</span>
-                        </div>
-                        <div class="more-item">
+                        </div> -->
+                        <div class="more-item" @click="moveHandle(item, index)">
                           <span class="more-icon">
                             <ImportOutlined />
                           </span>
-                          <span class="more-name">移动</span>
+                          <span class="more-name">移动( √ )</span>
                         </div>
-                        <div class="more-item">
+                        <div class="more-item" v-if="item.type == 'file'" @click="collectHandleOk(item, index)">
                           <span class="more-icon">
-                            <TagOutlined />
+                            <!-- <TagOutlined /> -->
+                            <!-- <HeartFilled style="color: #1e6fff" /> -->
+                            <HeartOutlined style="color: #282828" />
                           </span>
                           <span class="more-name">添加收藏</span>
                         </div>
-                        <div class="more-item">
+                        <!-- <div class="more-item">
                           <span class="more-icon">
                             <BookOutlined />
                           </span>
                           <span class="more-name">添加标签</span>
-                        </div>
+                        </div> -->
                         <div class="more-line"></div>
                         <div class="more-item" @click="settingHandle(item, index)">
                           <span class="more-icon">
                             <SettingOutlined />
                           </span>
-                          <span class="more-name">设置</span>
+                          <span class="more-name">设置( √ )</span>
                         </div>
                         <div class="more-item" @click="showDeleteConfirm(item, index)">
                           <span class="more-icon">
                             <DeleteOutlined />
                           </span>
-                          <span class="more-name">删除(已完成)</span>
+                          <span class="more-name">删除( √ )</span>
                         </div>
                       </div>
                     </template>
@@ -129,7 +137,9 @@
       <div class="knowledge-other"></div>
     </div>
     <Editor ref="editorRef" @updateSuccess="handleUpdateSuccess"></Editor>
-    <Setting ref="settingRef"></Setting>
+    <Setting ref="settingRef" :title="settingTitle" @updateSuccess="handleUpdateSuccess"></Setting>
+
+    <TreeSelect ref="treeSelectRef" @selectSuccess="handleSelectSuccess"></TreeSelect>
   </div>
 </template>
 <script lang="js" setup>
@@ -151,6 +161,8 @@
     SearchOutlined,
     CheckOutlined,
     ExclamationCircleOutlined,
+    HeartOutlined,
+    HeartFilled,
   } from "@ant-design/icons-vue";
   import { ref, h, onMounted, reactive, watch } from "vue";
   import { useRoute } from "vue-router";
@@ -159,12 +171,18 @@
   import Setting from "./model/setting.vue";
   import Editor from "./model/editor.vue";
   import { message, Modal } from "ant-design-vue";
-  import { postlibraryapi } from "../../api/index.js";
+  import { postlibraryapi, postcollectapi } from "../../api/index.js";
   import qs from "qs";
   import { useAppStore } from "../../store/module/app";
 
+  import TreeSelect from "../library/model/treeSelect.vue";
+
   import { storeToRefs } from "pinia";
+
+  const treeSelectRef = ref();
   const appStore = useAppStore();
+
+  const settingTitle = ref("");
 
   // 二级目录数据
   const fileList = ref([]);
@@ -180,18 +198,31 @@
   const popoverVisible = ref([]);
   const userName = ref("");
   const loading = ref(false); // 新增加载状态
+  const currentId = ref("");
 
   // 引入appStore中的属性
   const { selectedKeys } = storeToRefs(appStore);
   const route = useRoute();
 
+  // 编辑弹窗
   const editHandle = (item, index) => {
     popoverVisible.value[index] = false;
     editorRef.value.showModal(item);
   };
+  // 设置弹窗
   const settingHandle = (item, index) => {
     popoverVisible.value[index] = false;
-    settingRef.value.showDrawer();
+    console.log(item);
+
+    settingTitle.value = item.type == "folder" ? "文件夹" : "文档";
+    settingRef.value.showDrawer(item);
+  };
+  // 移动弹窗
+  const moveHandle = (item, index) => {
+    console.log(item);
+    currentId.value = item.id_;
+    popoverVisible.value[index] = false;
+    treeSelectRef.value.handleVisible("文档移动");
   };
   const showDeleteConfirm = (item, index) => {
     Modal.confirm({
@@ -207,6 +238,21 @@
         console.log("Cancel");
       },
     });
+  };
+  // 添加收藏
+  const collectHandleOk = async (item, index) => {
+    console.log("item", item);
+
+    const formData = {
+      type: "add",
+      favorite_id: item.id_,
+    };
+    const response = await postcollectapi(qs.stringify(formData));
+    if (response.data.code == 1) {
+      console.log("接口请求成功:", response);
+      message.success(response.data.msg);
+      leftLibraryTree(selectedKeys.value);
+    }
   };
   const folderDelete = async (item) => {
     const formData = {
@@ -300,6 +346,27 @@
       leftLibraryTree(selectedKeys.value); // 重新获取当前路由的文件列表
     }
   );
+
+  // 处理子组件 treeSelect 传来的更新
+  const handleSelectSuccess = async (selectValue) => {
+    // 获取到移动目标的 pid, 处理逻辑
+    const formData = {
+      type: "move",
+      pid: selectValue,
+      id_: currentId.value,
+    };
+    try {
+      const response = await postlibraryapi(qs.stringify(formData));
+
+      if (response.data.code == 1) {
+        message.success("移动成功");
+        appStore.triggerRefresh(); // 触发全局刷新
+        console.log("接口请求成功:", response);
+      }
+    } catch (error) {
+      console.error("接口请求失败:", error);
+    }
+  };
 </script>
 <style scoped>
   .knowledge-left {
