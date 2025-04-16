@@ -3,15 +3,15 @@
     <div class="title">{{ title }}</div>
     <a-table :columns="columns" :data-source="dataSource" bordered :pagination="pagination">
       <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'name'">
-          <div class="editable-cell"><img src="../../assets/file/doc.png" height="20px" />{{ record.name }}</div>
+        <template v-if="column.dataIndex === 'file_name'">
+          <div class="editable-cell"><img src="../../assets/file/doc.png" height="20px" style="margin-right: 6px" />{{ record.file_name }}</div>
         </template>
         <template v-if="column.dataIndex === 'operation'">
           <div class="editable-row-operations">
             <a-tooltip>
               <template #title>取消收藏</template>
               <span>
-                <a @click="recycle(record.key)"><HeartFilled style="color: #fbbb00" /></a>
+                <a @click="recycle(record)"><HeartFilled style="color: #fbbb00" /></a>
               </span>
             </a-tooltip>
           </div>
@@ -35,7 +35,7 @@
   const columns = [
     {
       title: "文件名称",
-      dataIndex: "name",
+      dataIndex: "file_name",
       width: "55%",
     },
     {
@@ -45,7 +45,7 @@
     },
     {
       title: "修改时间",
-      dataIndex: "updateTime",
+      dataIndex: "create_time",
       width: "20%",
     },
     {
@@ -64,12 +64,12 @@
     onChange: (page, pageSize) => {
       pagination.current = page;
       pagination.pageSize = pageSize;
-      fetchRecycleData();
+      fetchCollectData();
     },
   });
   // 修改请求参数
   const formData = reactive({
-    type: "recycleBin",
+    type: "page",
     pageNum: 1,
     pageSize: 10,
   });
@@ -84,9 +84,9 @@
     try {
       const response = await postcollectapi(qs.stringify(formData));
 
-      if (response.data.code == 1) {
+      if (response.data.obj.error == "") {
         console.log("接口请求成功:", response);
-        dataSource.value = response.data.obj.data; // 保存原始数据
+        dataSource.value = response.data.obj.data.data; // 保存原始数据
         // 更新总记录数
         pagination.total = response.data.obj.data.count;
       }
@@ -95,15 +95,16 @@
     }
   };
 
-  const recycle = async (key) => {
+  const recycle = async (record) => {
+    console.log("key", record);
     try {
       const Data = {
         type: "delete",
-        id_: key,
+        id_: record.id_,
       };
-      const response = await postcollectapi(qs.stringify(formData));
+      const response = await postcollectapi(qs.stringify(Data));
 
-      if (response.data.code == 1) {
+      if (response.data.obj.error == "") {
         console.log("接口请求成功:", response);
         message.success("收藏取消成功");
         // 更新

@@ -12,7 +12,7 @@
   import { reactive, ref, toRaw } from "vue";
 
   import { message } from "ant-design-vue";
-  import { postlibraryapi } from "../../../api/index.js";
+  import { postFileapi, postlibraryapi } from "../../../api/index.js";
   import qs from "qs";
 
   const visible = ref(false);
@@ -26,7 +26,9 @@
   // 定义事件
   const emit = defineEmits(["updateSuccess"]);
   const showModal = (item) => {
+    // 打开弹窗
     visible.value = true;
+    // 设置表单数据
     LibraryForm.id_ = item.id_;
     LibraryForm.libraryName = item.name;
     console.log("item: ", item);
@@ -45,7 +47,14 @@
           classification_name: LibraryForm.libraryName,
           id_: LibraryForm.id_,
         };
-        const response = await postlibraryapi(qs.stringify(formData)); // 调用接口
+        let response;
+        if (title.value == "修改文件夹") {
+          // 文件夹更新名称
+          response = await postlibraryapi(qs.stringify(formData));
+        } else {
+          // 文档更新名称
+          response = await postFileapi(qs.stringify(formData)); // 调用接口
+        }
         console.log("接口请求成功:", response);
         if (response.data.code == 1) {
           message.success(response.data.msg);

@@ -10,8 +10,7 @@
       <!-- 左侧logo结束 -->
 
       <!-- 左侧菜单开始 -->
-      <!-- <a-menu v-model:selectedKeys="selectedKeys" :theme="theme" :items="menu" mode="inline"
-				@click="menuClicked" /> -->
+      <!-- <a-menu v-model:selectedKeys="selectedKeys" :theme="theme" :items="menu" mode="inline" @click="menuClicked" /> -->
 
       <div style="padding-left: 12px">
         <template v-for="(item, index) in menuList">
@@ -35,7 +34,7 @@
           </div>
           <div :class="!item.isExpand ? 'list-box' : 'list-box list-box-open'" v-if="!sideCollapsed && item.children && item.children.length > 0">
             <div class="list-items">
-              <div :class="menuIndex == child.key ? 'list-item silder-item-active' : 'list-item'" v-for="(child, childIndex) in item.children" @click="toPath(child, childIndex, true, index)">
+              <div :class="menuIndex == child.key ? 'list-item silder-item-active' : 'list-item'" v-for="(child, childIndex) in item.children" @click="toPath(child, childIndex, index, true)">
                 <svg-icon :name="item.icon" class="menu-icon" :color="menuIndex == child.key ? '#1e6fff' : ''"></svg-icon><span>{{ child.name }}</span>
               </div>
             </div>
@@ -53,7 +52,7 @@
         <MenuUnfoldOutlined v-if="sideCollapsed" class="trigger" @click="appAction.changeCollapsed" />
         <MenuFoldOutlined v-else class="trigger" @click="appAction.changeCollapsed" />
         <Header @updateSuccess="handleUpdateSuccess" :value="selectedValue"></Header>
-        <!-- <a-switch size="small" :checked="theme === 'dark'" checked-children="Dark" un-checked-children="Light" @change="appAction.changeTheme" class="themeSwitchMenu" /> -->
+        <a-switch size="small" :checked="theme === 'dark'" checked-children="Dark" un-checked-children="Light" @change="appAction.changeTheme" class="themeSwitchMenu" />
       </a-layout-header>
       <!-- 右侧header结束 -->
       <!-- 右侧页面主体开始 -->
@@ -91,7 +90,7 @@
   const selectedValue = ref("");
   const appStore = useAppStore();
   // 引入appStore中的属性
-  const { sideCollapsed, theme, menu, selectedKeys, openKeys } = storeToRefs(appStore);
+  const { sideCollapsed, theme, menu, selectedKeys, openKeys, selectedChildren, shouldRefreshLeftLibrary, breadValue, breadLength } = storeToRefs(appStore);
   const router = useRouter();
   // 定义App操作类，
   const appAction = {
@@ -104,26 +103,51 @@
       appStore.changeCollapsed();
     },
   };
-  const toPath = (item, index) => {
+  const toPath = (item, index, index2) => {
     console.log(item);
     console.log(index);
-    menuIndex.value = item.key;
-    selectedValue.value = item.key;
-    console.log("selectedValue.value", selectedValue.value);
-    selectedKeys.value = item.key;
-    appStore.triggerRefresh(); // 触发全局刷新
-    if (item.url) {
-      router.push({
-        path: item.url, // 直接使用配置的 url
-        query: {
-          id: item.key,
-          title: item.title,
-        },
-      });
+    console.log(index2);
+    // 初始化面包屑
+    if (breadValue.value[1].url != item.url) {
+      appStore.initBread();
     }
-    //
+    if (index2 !== undefined) {
+      changeBread(item, index, index2);
+    }
+    menuIndex.value = item.key;
+    // 传入header的id
+    selectedValue.value = item.key;
+    // 菜单选中
+    selectedKeys.value = item.key;
+    // 更新点击时的文件夹id
+    selectedChildren.value = item.key;
+
+    console.log("item.url", item.url);
+
+    // 生成带参数的路由路径
+    // const targetPath = item.key.replace(/:id/, item.id_);
+    router.push(item.url);
+    if (item.url) {
+      // router.push({
+      //   path: item.url, // 直接使用配置的 url
+      //   query: {
+      //     id: item.key || "0", // 防止 key 为 undefined
+      //     title: item.title,
+      //   },
+      // });
+    }
   };
-  const menuIndex = ref(-1);
+  // 处理面包屑
+  const changeBread = (item, index, index2) => {
+    const first = index2 == 1 ? "全部文库" : "我的文库";
+    // appStore.addBread(first);
+    // appStore.addBread(item.name);
+    breadValue.value[0] = { id: 0, name: first, url: `/allLibrary/${first}` };
+    breadValue.value[1] = { id: item.id_, name: item.name, url: item.url };
+
+    console.log(breadValue.value);
+  };
+  const menuIndex = ref(-11);
   const menuList = ref([
     {
       title: "首页",
@@ -135,7 +159,7 @@
       title: "全部文库",
       key: "-12",
       icon: "svg-wxz",
-      url: "/allLibrary",
+      url: "/allLibrary/全部文库",
       isExpand: false,
       children: [],
     },
@@ -181,10 +205,17 @@
   ]);
 
   onMounted(() => {
-    leftLibraryTree();
+    leftLibraryList();
+
+    setTimeout(() => {
+      router.push({
+        path: "/index", // 直接使用配置的 url
+      });
+    }, 500);
   });
+
   // 获取文库列表
-  const leftLibraryTree = async () => {
+  const leftLibraryList = async () => {
     const formData = {
       type: "list",
       pid: "0",
@@ -197,36 +228,41 @@
       menuList.value[1].children.forEach((item, index) => {
         item.key = item.id_;
         item.icon = "svg-wxz";
-        item.url = "/library";
+        item.url = "/library/" + item.id_;
       });
     }
   };
 
   // 处理子组件header传来的更新
-  const handleUpdateSuccess = () => {
+  const handleUpdateSuccess = (key, title) => {
     //
-    menuIndex.value = -1;
-    leftLibraryTree();
+    // menuIndex.value = selectedKeys.value;
+    menuIndex.value = key;
+    if (title == "文库") router.push("/library/" + key);
+    leftLibraryList();
   };
-  // 菜单点击事件
-  const menuClicked = ({ item, key }) => {
-    // 跳转到菜单配置的path地址取
-    router.push({
-      path: key,
-    });
-  };
-  watch(
-    () => appStore.selectedKeys,
-    () => {
-      menuIndex.value = selectedKeys.value; // 重新获取当前路由的文件列表
-    }
-  );
   watch(
     () => appStore.refreshKey,
     () => {
-      leftLibraryTree(); // 重新获取当前路由的文件列表
+      leftLibraryList(); // 重新获取文库列表
     }
   );
+  watch(
+    () => appStore.selectedKeys,
+    () => {
+      menuIndex.value = selectedKeys.value;
+    }
+  );
+  // 添加文库后，刷新文库列表
+  watch(shouldRefreshLeftLibrary, () => {
+    // 获取当前点击的路径
+    leftLibraryList(); // 精准刷新当前目录
+  });
+  // 面包屑标识，len=2 还退回时，跳转
+  watch(breadLength, () => {
+    // 获取当前点击的路径
+    // leftLibraryList(); // 精准刷新当前目录
+  });
 </script>
 <style scoped>
   .silder-item .title .menu-icon {

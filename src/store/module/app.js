@@ -8,14 +8,49 @@ export const useAppStore = defineStore("app", {
   state: () => {
     return {
       sideCollapsed: false, // 控制左侧菜单栏是否折叠
-      theme: "dark", // 主题
+      theme: "light", // 主题
       menu: [], // 菜单列表
       selectedKeys: "", // 菜单中选中的项
+      selectedChildren: "", // 实时选中的子文件夹
       openKeys: [], // 菜单中展开的项
       refreshKey: 0, // 新增，用于触发全局刷新
+      shouldRefreshLeftTree: false, // 刷新左侧文件夹树
+      shouldRefreshLeftLibrary: false, // 刷新左侧文库树
+      clickLibraryStatus: false, //刷新文库设置信息
+      //面包屑数组
+      breadValue: [
+        {id:0,name:0,url:0},{id:1,name:1,url:1}
+      ], 
+      // 退回时候，最后一个id
+      breadLastId: "",
     };
   },
   actions: {
+    // 初始化面包屑数组
+    initBread() {
+      this.breadValue = this.breadValue.slice(0, 2);
+    },
+    // 面包屑增加
+    addBread(id, name, url) {
+      this.breadValue.push({ id: id, name: name, url: url });
+    },
+    // 面包屑退回
+    backBread() {
+      this.breadValue.pop(); // 删除最后一项
+      this.breadLastId = this.breadValue[this.breadValue.length - 1].id;
+      // return id;
+    },
+    triggerLeftTreeRefresh() {
+      this.shouldRefreshLeftTree = !this.shouldRefreshLeftTree;
+    },
+    // 刷新左侧文库树
+    triggerLeftLibraryRefresh() {
+      this.shouldRefreshLeftLibrary = !this.shouldRefreshLeftLibrary;
+    },
+    // 获取文库详情
+    triggerStatusRefresh() {
+      this.clickLibraryStatus = !this.clickLibraryStatus;
+    },
     changeTheme() {
       this.theme = this.theme == "light" ? "dark" : "light";
     },
@@ -27,6 +62,9 @@ export const useAppStore = defineStore("app", {
     },
     selectMenu(key) {
       this.selectedKeys = key;
+    },
+    selectChildren(key) {
+      this.selectedChildren = key;
     },
     setMenu(menu) {
       // 首先深拷贝一下menu参数，因为这里需要对参数值进行一些修改

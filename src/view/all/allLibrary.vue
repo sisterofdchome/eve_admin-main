@@ -52,7 +52,7 @@
       </div>
     </a-spin>
 
-    <Setting ref="settingRef"></Setting>
+    <Setting ref="settingRef" @updateSuccess="handleUpdateSuccess"></Setting>
   </div>
 </template>
 
@@ -73,29 +73,44 @@
   import { useAppStore } from "../../store/module/app";
   const appStore = useAppStore();
   // 引入appStore中的属性
-  const { sideCollapsed, theme, menu, selectedKeys, openKeys } = storeToRefs(appStore);
+  const { sideCollapsed, theme, menu, selectedKeys, openKeys, breadValue } = storeToRefs(appStore);
   const route = useRoute();
 
-  const title = ref(route.query.title);
+  // const title = ref(route.query.title);
   const libraryData = ref([]);
   const loading = ref(false); // 新增加载状态
   const router = useRouter();
   const settingRef = ref(null);
 
+  // 使用props接收参数
+  const props = defineProps({
+    title: {
+      type: String,
+      required: true,
+    },
+  });
+
   onMounted(() => {
+    console.log(props.title);
     fetchLibraryList();
   });
   const handleLibraryClick = (item) => {
-    if (item.url) {
-      selectedKeys.value = item.id_;
-      router.push({
-        path: item.url, // 直接使用配置的 url
-        query: {
-          id: item.id_,
-          title: item.name,
-        },
-      });
-    }
+    console.log(item);
+    router.push(`${item.url}/${item.id_}`);
+    selectedKeys.value = item.id_;
+
+    breadValue.value[0] = { id: 0, name: "全部文库", url: "/allLibrary/全部文库" };
+    breadValue.value[1] = { id: item.id_, name: item.name, url: `item.url${item.id_}` };
+    // if (item.url) {
+    //   selectedKeys.value = item.id_;
+    //   router.push({
+    //     path: item.url, // 直接使用配置的 url
+    //     query: {
+    //       id: item.id_,
+    //       title: item.name,
+    //     },
+    //   });
+    // }
   };
   /**
    * 获取文库list
@@ -131,7 +146,7 @@
   };
 
   const settingHandle = (item, index) => {
-    settingRef.value.showDrawer();
+    settingRef.value.showDrawer(item);
   };
   // 删除弹框
   const showDeleteConfirm = (item, index) => {
@@ -155,9 +170,12 @@
     try {
       const response = await postlibraryapi(qs.stringify(formData));
       console.log("接口请求成功:", response);
-      if (response.data.code == 1) {
+      if (response.data.obj.error == "") {
+        message.success("删除成功");
         fetchLibraryList();
-        appStore.triggerRefresh(); // 触发全局刷新
+        appStore.triggerLeftLibraryRefresh(); // 触发文库列表更新
+      } else {
+        message.error(response.data.obj.error);
       }
     } catch (error) {}
   };
@@ -165,6 +183,10 @@
   // 悬停状态控制
   const handleHover = (item, state) => {
     item.isHover = state;
+  };
+  // 处理子组件header传来的更新
+  const handleUpdateSuccess = (key, title) => {
+    fetchLibraryList();
   };
 </script>
 

@@ -19,7 +19,7 @@
             <BarsOutlined style="font-size: 16px; margin-left: 8px" />
             <template #overlay>
               <a-menu>
-                <a-menu-item v-for="item in orderList" @click="orderIndex = item.id">
+                <a-menu-item v-for="item in orderList" @click="changeOrderList(item)">
                   <div :class="item.id == orderIndex ? 'active' : ''">
                     <span class="check-icon">
                       <CheckOutlined v-if="item.id == orderIndex" />
@@ -48,13 +48,13 @@
                   <a-popover trigger="click" placement="rightTop" overlayClassName="poperLayTable" v-model:visible="popoverVisible[index]" @click.stop>
                     <template #title>
                       <div class="more-items">
-                        <div class="more-item" @click="editHandle(item, index)">
+                        <div class="more-item" @click="editHandle(item, index)" v-if="item.type != 'file'">
                           <span class="more-icon">
                             <FormOutlined />
                           </span>
                           <span class="more-name">编辑( √ )</span>
                         </div>
-                        <div class="more-item" v-if="item.type == 'file'">
+                        <div class="more-item" v-else>
                           <span class="more-icon">
                             <FormOutlined />
                           </span>
@@ -91,13 +91,19 @@
                           </span>
                           <span class="more-name">移动( √ )</span>
                         </div>
-                        <div class="more-item" v-if="item.type == 'file'" @click="collectHandleOk(item, index)">
-                          <span class="more-icon">
-                            <!-- <TagOutlined /> -->
-                            <!-- <HeartFilled style="color: #1e6fff" /> -->
-                            <HeartOutlined style="color: #282828" />
-                          </span>
-                          <span class="more-name">添加收藏</span>
+                        <div class="more-item" v-if="item.type == 'file'">
+                          <div v-if="item.is_favorite == ''" style="display: flex; align-items: center" @click="collectHandleOk(item, index)">
+                            <span class="more-icon">
+                              <HeartOutlined style="color: #282828" />
+                            </span>
+                            <span class="more-name">添加收藏( √ )</span>
+                          </div>
+                          <div v-else style="display: flex; align-items: center" @click="folderDelete(item, index)">
+                            <span class="more-icon">
+                              <HeartFilled style="color: #1e6fff" />
+                            </span>
+                            <span class="more-name">取消收藏( √ )</span>
+                          </div>
                         </div>
                         <!-- <div class="more-item">
                           <span class="more-icon">
@@ -125,16 +131,19 @@
                 </div>
               </div>
             </div>
-            <div v-else class="no-data">暂无数据</div>
+            <div v-else><a-empty></a-empty></div>
           </a-spin>
         </div>
       </div>
       <div class="tree-drop-width-line" style="left: 240px"></div>
-      <div class="knowledge-right" style="width: calc(100% - 240px); height: calc(100vh - 127px); overflow: overlay">
+      <!-- <div class="knowledge-right" style="width: calc(100% - 240px); height: calc(100vh - 127px); overflow: overlay">
         <div class="file-view-box"></div>
         <Comment></Comment>
+      </div> -->
+      <!-- 详情页 -->
+      <div style="width: 100%">
+        <LibraryContent :id="id"></LibraryContent>
       </div>
-      <div class="knowledge-other"></div>
     </div>
     <Editor ref="editorRef" @updateSuccess="handleUpdateSuccess"></Editor>
     <Setting ref="settingRef" :title="settingTitle" @updateSuccess="handleUpdateSuccess"></Setting>
@@ -168,10 +177,11 @@
   import { useRoute } from "vue-router";
   import Tool from "./model/tool.vue";
   import Comment from "./model/comment.vue";
+  import LibraryContent from "./model/libraryContent.vue";
   import Setting from "./model/setting.vue";
   import Editor from "./model/editor.vue";
   import { message, Modal } from "ant-design-vue";
-  import { postlibraryapi, postcollectapi } from "../../api/index.js";
+  import { postlibraryapi, postcollectapi, postFileapi } from "../../api/index.js";
   import qs from "qs";
   import { useAppStore } from "../../store/module/app";
 
@@ -187,12 +197,12 @@
   // 二级目录数据
   const fileList = ref([]);
   const orderList = ref([
-    { id: 1, name: "按时间排序(正序)" },
-    { id: 2, name: "按时间排序(倒序)" },
-    { id: 3, name: "按文件名排序(a-z)" },
-    { id: 4, name: "按文件名排序(z-a)" },
+    { id: "time_asc", name: "按时间排序(正序)" },
+    { id: "time_desc", name: "按时间排序(倒序)" },
+    { id: "name_asc", name: "按文件名排序(a-z)" },
+    { id: "name_desc", name: "按文件名排序(z-a)" },
   ]);
-  const orderIndex = ref(1);
+  const orderIndex = ref(0);
   const editorRef = ref(null);
   const settingRef = ref(null);
   const popoverVisible = ref([]);
@@ -201,9 +211,16 @@
   const currentId = ref("");
 
   // 引入appStore中的属性
-  const { selectedKeys } = storeToRefs(appStore);
+  const { selectedKeys, selectedChildren, shouldRefreshLeftTree, breadValue, breadLastId } = storeToRefs(appStore);
   const route = useRoute();
 
+  // 使用props接收参数
+  const props = defineProps({
+    id: {
+      type: String,
+      required: true,
+    },
+  });
   // 编辑弹窗
   const editHandle = (item, index) => {
     popoverVisible.value[index] = false;
@@ -224,7 +241,10 @@
     popoverVisible.value[index] = false;
     treeSelectRef.value.handleVisible("文档移动");
   };
+  // 打开删除提示
   const showDeleteConfirm = (item, index) => {
+    popoverVisible.value[index] = false;
+    console.log(item);
     Modal.confirm({
       title: "确定删除吗?",
       icon: h(ExclamationCircleOutlined),
@@ -232,44 +252,93 @@
       okType: "danger",
       cancelText: "否",
       onOk() {
-        folderDelete(item);
+        if (item.type == "folder") {
+          folderDeleteHandle(item, index);
+        } else {
+          deleteHandle(item, index);
+        }
       },
       onCancel() {
         console.log("Cancel");
       },
     });
   };
+  // 删除文件夹
+  const folderDeleteHandle = async (item, index) => {
+    console.log(item);
+    const formData = {
+      type: "delete",
+      id_: item.id_,
+    };
+    const response = await postlibraryapi(qs.stringify(formData));
+
+    if (response.data.obj.error == "") {
+      message.success("操作成功");
+      leftLibraryTree(selectedChildren.value);
+    } else {
+      message.error(response.data.obj.error);
+    }
+  };
+
+  // 删除文件
+  const deleteHandle = async (item, index) => {
+    console.log(item);
+
+    const formData = {
+      type: "delete",
+      id_: item.id_,
+      classification_id: item.pid,
+    };
+    const response = await postFileapi(qs.stringify(formData));
+    console.log("接口请求成功:", response);
+    if (response.data.obj.error == "") {
+      message.success(response.data.msg);
+      leftLibraryTree(selectedKeys.value);
+    } else {
+      message.error(response.data.obj.error);
+    }
+  };
+
   // 添加收藏
   const collectHandleOk = async (item, index) => {
     console.log("item", item);
+    popoverVisible.value[index] = false;
 
     const formData = {
       type: "add",
       favorite_id: item.id_,
     };
     const response = await postcollectapi(qs.stringify(formData));
-    if (response.data.code == 1) {
+    if (response.data.obj.error == "") {
       console.log("接口请求成功:", response);
       message.success(response.data.msg);
-      leftLibraryTree(selectedKeys.value);
+      leftLibraryTree(item.pid);
+    } else {
+      message.error(response.data.obj.error);
     }
   };
-  const folderDelete = async (item) => {
+  // 取消收藏
+  const folderDelete = async (item, index) => {
+    popoverVisible.value[index] = false;
+    console.log(item);
     const formData = {
       type: "delete",
-      id_: item.id_,
+      id_: item.is_favorite,
     };
-    const response = await postlibraryapi(qs.stringify(formData));
-    console.log("接口请求成功:", response);
-    if (response.data.code == 1) {
-      message.success(response.data.msg);
-      leftLibraryTree(selectedKeys.value);
-    }
-  };
+    // const response = await postcollectapi(qs.stringify(formData));
 
+    // if (response.data.obj.error == "") {
+    //   console.log("接口请求成功:", response);
+    //   message.success(response.data.msg);
+    //   leftLibraryTree(item.pid);
+    // }
+  };
+  // 点击下一级
   const fileHandle = (item) => {
     console.log(item);
+    selectedChildren.value = item.id_;
     if (item.type == "folder") {
+      appStore.addBread(item.id_, item.name);
       leftLibraryTree(item.id_);
     } else if (item.type == "file") {
       // 文件
@@ -281,10 +350,12 @@
 
   // 处理子组件editor传来的更新
   const handleUpdateSuccess = (updatedItem) => {
-    const index = fileList.value.findIndex((item) => item.id_ === updatedItem.id_);
-    if (index !== -1) {
-      fileList.value[index].name = updatedItem.name; // 更新名称
-    }
+    // const index = fileList.value.findIndex((item) => item.id_ === updatedItem.id_);
+    // if (index !== -1) {
+    //   fileList.value[index].name = updatedItem.name; // 更新名称
+    // }
+    // 刷新左侧 文件夹树
+    leftLibraryTree(selectedChildren.value);
   };
   // 防抖函数
   const debounce = (fn, delay) => {
@@ -321,31 +392,46 @@
     }
   };
   // 应用防抖的 leftLibraryTree
-  const leftLibraryTree = debounce(fetchLibraryTree, 300); // 300ms 防抖
+  const leftLibraryTree = debounce(fetchLibraryTree, 150); // 300ms 防抖
 
   // 初始化时调用
   onMounted(() => {
-    const id = route.query.id;
-    console.log("组件挂载时接收到的参数:", id);
-    if (id) {
-      leftLibraryTree(id);
+    // 优先使用 Pinia 中的 selectedChildren（当前路径）
+    console.log(props.id);
+    console.log(appStore.selectedChildren);
+    const currentPath = props.id || appStore.selectedChildren;
+    if (currentPath) {
+      leftLibraryTree(currentPath);
     }
   });
   // 监听路由参数变化
-  // watch(
-  //   () => route.query.id,
-  //   (newId, oldId) => {
-  //     console.log("路由参数 id 变化:", { newId, oldId });
-  //     leftLibraryTree(newId);
-  //   }
-  // );
+  // 替换原有的route.query.id监听
+  watch(
+    () => props.id,
+    (newId) => {
+      leftLibraryTree(newId);
+    }
+  );
   // 监听refreshKey变化
   watch(
     () => appStore.refreshKey,
     () => {
-      leftLibraryTree(selectedKeys.value); // 重新获取当前路由的文件列表
+      leftLibraryTree(selectedChildren.value); // 重新获取当前路由的文件列表
     }
   );
+  // 添加文件夹后，刷新第二个左侧树
+  watch(shouldRefreshLeftTree, () => {
+    // 获取当前点击的路径
+    const currentPath = selectedChildren.value;
+    if (currentPath) {
+      leftLibraryTree(currentPath); // 精准刷新当前目录
+    }
+  });
+  // 面包屑退回，监听变化，重新获取列表
+  watch(breadLastId, () => {
+    // 获取当前点击的路径
+    leftLibraryTree(breadLastId.value); // 精准刷新当前目录
+  });
 
   // 处理子组件 treeSelect 传来的更新
   const handleSelectSuccess = async (selectValue) => {
@@ -360,10 +446,32 @@
 
       if (response.data.code == 1) {
         message.success("移动成功");
-        appStore.triggerRefresh(); // 触发全局刷新
+        leftLibraryTree(selectedChildren.value);
         console.log("接口请求成功:", response);
       }
     } catch (error) {
+      message.success(response.data.obj.error);
+      console.error("接口请求失败:", error);
+    }
+  };
+  // 排序
+  const changeOrderList = async (item) => {
+    orderIndex.value = item.id;
+    const formData = {
+      type: "list",
+      sort: item.id,
+      pid: selectedChildren.value,
+    };
+    try {
+      const response = await postlibraryapi(qs.stringify(formData));
+
+      console.log("接口请求成功:", response);
+      if (response.data.code == 1) {
+        fileList.value = response.data.obj.data;
+        console.log(fileList.value);
+      }
+    } catch (error) {
+      message.success(response.data.obj.error);
       console.error("接口请求失败:", error);
     }
   };
@@ -386,10 +494,6 @@
     justify-content: center;
     top: 50%;
     transform: translate(calc(-50% + 2px)) translateY(-50%);
-  }
-
-  .knowledge-right {
-    border-left: 1px solid #f5f6f7;
   }
 
   .knowledge-other {

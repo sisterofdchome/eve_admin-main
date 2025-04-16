@@ -165,10 +165,15 @@
   const emit = defineEmits(["selectSuccess"]);
   const handleVisible = (type) => {
     visible.value = true;
+    fetchLibraryTree();
     if (type == "wj") {
       title.value = "新建文件夹";
     } else if (type == "文档移动") {
       title.value = type; // 如果是文库，则显示新建文库模态框
+    } else if (type == "recycle") {
+      title.value = "恢复文件";
+    } else if (type == "upload") {
+      title.value = "文件导入";
     }
   };
 

@@ -10,7 +10,7 @@ import pinia from '@/store'
 const menu = [{
 		name: "首页",
 		label: '首页',
-		key: '/index',
+		key: '/index', // 添加动态参数
 		icon: 'DashboardOutlined',
 		component: 'index',
 	},
@@ -48,11 +48,11 @@ const menu = [{
 	{
 		name: '我的文库',
 		label: '我的文库',
-		key: '9',
+		key: '/myLibrary',
 		icon: 'FolderFilled',
 		url: "/",
 		isExpand: false,
-		component: 'UserList',
+		component: 'myLibrary',
 		children: [{
 				name: '文库-4',
 				label: '文库-4',

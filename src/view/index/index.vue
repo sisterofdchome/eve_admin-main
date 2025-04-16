@@ -149,4 +149,8 @@
     font-size: 20px;
     color: #000000; /* 示例主题色（可调整） */
   }
+
+  .ant-card-cover {
+    padding: 12px;
+  }
 </style>

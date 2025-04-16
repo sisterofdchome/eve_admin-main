@@ -9,7 +9,26 @@ const router = createRouter({
       path: '',
       name: 'basic',
       component: () => import('@/layout/Layout.vue'),
-      children: []
+      children: [
+        {
+          path: '/library/:id',
+          name: 'Library',
+          component: () => import('../view/library/index.vue'),
+          props: true
+        },
+        {
+          path: '/index/:id',
+          name: 'Index',
+          component: () => import('../view/index/index.vue'),
+          props: true
+        },
+        {
+          path: '/allLibrary/:title',
+          name: 'AllLibrary',
+          component: () => import('../view/all/allLibrary.vue'),
+          props: true
+        },
+      ]
     },
     {
       path: '/login',

@@ -8,7 +8,7 @@ export const getroomapi = (data) => getapi("/luqiao/supervise/reportInputControl
 export const postlibraryapi = (data) => postapi("/luqiao/supervise/reportInputController?common&id=801b54d933374f40912ab160e85ebc3d", data);
 
 /*
-* 文库操作
+* 文件收藏
 * type	page（分页查询，当前用户）all（所有收藏）add（添加收藏）delete（取消收藏）
 * favorite_id
 */
@@ -16,7 +16,7 @@ export const postcollectapi = (data) => postapi("/luqiao/supervise/reportInputCo
 
 
 /*
-* 文库操作
+* 文件操作
 * type	page(分页展示),get（id_,获取单个文件信息）,all（所有文件）,update（更新）,add（添加单个文件，多个文件循环添加，file_name,file_id,classification_id）,move（移动）,
   delete（逻辑删除）,realDelete（物理删除）,revert（还原）,recycleBin（回收站）
 * favorite_id

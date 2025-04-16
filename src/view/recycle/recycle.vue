@@ -20,11 +20,13 @@
             <span>
               <a-tooltip>
                 <template #title>恢复文件</template>
-                <a @click="recycleDemo(record.key)"><sync-outlined /></a>
+                <a-popconfirm title="确定恢复文件吗?" @confirm="recycleTree(record)">
+                  <a><sync-outlined /></a>
+                </a-popconfirm>
               </a-tooltip>
               <a-tooltip>
                 <template #title>彻底删除</template>
-                <a-popconfirm title="确定删除吗?" @confirm="cancel(record.key)">
+                <a-popconfirm title="确定删除吗?" @confirm="realDelete(record)">
                   <a><DeleteOutlined /></a>
                 </a-popconfirm>
               </a-tooltip>
@@ -33,6 +35,7 @@
         </template>
       </template>
     </a-table>
+    <TreeSelect ref="treeSelectRef" @selectSuccess="handleSelectSuccess"></TreeSelect>
   </div>
 </template>
 <script setup>
@@ -43,9 +46,17 @@
   import dayjs from "dayjs";
 
   import { postFileapi } from "../../api/index";
+
+  import TreeSelect from "../../view/library/model/treeSelect.vue";
   import qs from "qs";
 
   import { message } from "ant-design-vue";
+
+  const treeSelectRef = ref();
+  // 选择的目标文件夹
+  const selectFolderOrLibrary = ref("");
+  // 当前操作的record 文件id
+  const selectFileId = ref("");
 
   const route = useRoute();
   const title = ref(route.query.title);
@@ -101,7 +112,7 @@
     try {
       const response = await postFileapi(qs.stringify(formData));
 
-      if (response.data.code == 1) {
+      if (response.data.obj.error == "") {
         console.log("接口请求成功:", response);
         dataSource.value = response.data.obj.data.data; // 保存原始数据
         // 更新总记录数
@@ -112,15 +123,20 @@
     }
   };
 
+  const recycleTree = async (record) => {
+    selectFileId.value = record.id_;
+    treeSelectRef.value.handleVisible("recycle");
+  };
   const recycleDemo = async (key) => {
     try {
       const Data = {
         type: "revert",
-        id_: key,
+        classification_id: key,
+        id_: selectFileId.value,
       };
-      const response = await postcollectapi(qs.stringify(formData));
+      const response = await postFileapi(qs.stringify(Data));
 
-      if (response.data.code == 1) {
+      if (response.data.obj.error == "") {
         console.log("接口请求成功:", response);
         message.success("恢复文件成功");
         // 更新
@@ -130,6 +146,31 @@
       message.success("恢复文件失败");
       console.error("接口请求失败:", error);
     }
+  };
+
+  // 删除文件
+  const realDelete = async (item, index) => {
+    console.log(item);
+
+    const formData = {
+      type: "realDelete",
+      id_: item.id_,
+    };
+    const response = await postFileapi(qs.stringify(formData));
+
+    if (response.data.obj.error == "") {
+      console.log("接口请求成功:", response);
+      message.success(response.data.msg);
+      fetchRecycleData();
+    } else {
+      message.error(response.data.obj.error);
+    }
+  };
+
+  // 处理子组件 treeSelect 传来的更新
+  const handleSelectSuccess = (selectValue) => {
+    selectFolderOrLibrary.value = selectValue; // 更新名称
+    recycleDemo(selectFolderOrLibrary.value);
   };
 </script>
 <style scoped>

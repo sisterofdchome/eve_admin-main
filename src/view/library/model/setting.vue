@@ -15,9 +15,9 @@
                 <a-input v-model:value="formState.classification_name" :placeholder="'请输入' + settingTitle + '名称'" />
               </a-form-item>
 
-              <!-- <a-form-item :label="settingTitle + '描述'" name="description">
+              <a-form-item :label="settingTitle + '描述'" name="description" v-if="settingTitle == '文库'">
                 <a-textarea v-model:value="formState.description" placeholder="请输入文库描述" :rows="4" />
-              </a-form-item> -->
+              </a-form-item>
             </a-form>
           </div>
           <!-- <div class="auth-box">
@@ -100,7 +100,11 @@
   import { FileTextOutlined, FileSearchOutlined, BellOutlined, InteractionOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
   import { message } from "ant-design-vue";
 
-  import { postlibraryapi } from "../../../api/index.js";
+  // 引入appStore
+  import { useAppStore } from "../../../store/module/app";
+  const appStore = useAppStore();
+
+  import { postlibraryapi, postFileapi } from "../../../api/index.js";
   import qs from "qs";
 
   // 接收父组件传递的 props
@@ -231,8 +235,16 @@
     console.log(item);
     visible.value = true;
 
-    settingTitle.value = item.type == "folder" ? "文件夹" : "文档";
-    formState.classification_name = item.name;
+    // settingTitle.value = item.type == "folder" ? "文件夹" : "文档";
+    if (item.type == "folder") {
+      settingTitle.value = "文件夹";
+    } else if (item.type == "file") {
+      settingTitle.value = "文档";
+    } else {
+      settingTitle.value = "文库";
+      formState.description = item.description;
+    }
+    formState.classification_name = item.name || item.classification_name;
     // formState.description = item.description;
     settingNav.value[1].name = settingTitle.value + "权限";
     id_.value = item.id_;
@@ -249,11 +261,18 @@
       classification_name: formState.classification_name,
       id_: id_.value,
     };
-    const response = await postlibraryapi(qs.stringify(formData)); // 调用接口
-
+    let response;
+    if (settingTitle.value == "文档") {
+      // 文档更新名称
+      response = await postFileapi(qs.stringify(formData)); // 调用接口
+    } else {
+      // 文件夹更新名称
+      response = await postlibraryapi(qs.stringify(formData));
+    }
     if (response.data.code == 1) {
       console.log("接口请求成功:", response);
       message.success(response.data.msg);
+      appStore.triggerLeftLibraryRefresh(); // 触发文库列表更新
       // 触发事件，传递更新后的数据
       emit("updateSuccess", {
         id_: id_.value,
