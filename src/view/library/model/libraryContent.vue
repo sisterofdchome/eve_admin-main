@@ -93,7 +93,13 @@
   import { postlibraryapi } from "../../../api/index";
   import qs from "qs";
 
+  import { useAppStore } from "../../../store/module/app";
+  import { storeToRefs } from "pinia";
   import Setting from "../model/setting.vue";
+
+  const appStore = useAppStore();
+  // 引入appStore中的属性
+  const { selectedChildren, shouldRefreshLeftTree } = storeToRefs(appStore);
 
   const props = defineProps({
     id: {
@@ -143,6 +149,15 @@
       getLibraryImformation(newId);
     }
   );
+
+  // 添加文件后，刷新文库的 KB信息
+  watch(shouldRefreshLeftTree, () => {
+    getLibraryImformation(props.id); // 刷新
+  });
+  // 暴露方法给父组件
+  defineExpose({
+    getLibraryImformation,
+  });
 </script>
 <style scoped>
   .knowledge-right {

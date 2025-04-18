@@ -142,7 +142,7 @@
       </div> -->
       <!-- 详情页 -->
       <div style="width: 100%">
-        <LibraryContent :id="id"></LibraryContent>
+        <LibraryContent ref="libraryContentRef" :id="id"></LibraryContent>
       </div>
     </div>
     <Editor ref="editorRef" @updateSuccess="handleUpdateSuccess"></Editor>
@@ -193,6 +193,14 @@
   const appStore = useAppStore();
 
   const settingTitle = ref("");
+  const libraryContentRef = ref(null);
+
+  // 调用子组件方法
+  const callChildMethod = () => {
+    if (libraryContentRef.value) {
+      libraryContentRef.value.getLibraryImformation(props.id);
+    }
+  };
 
   // 二级目录数据
   const fileList = ref([]);
@@ -211,7 +219,7 @@
   const currentId = ref("");
 
   // 引入appStore中的属性
-  const { selectedKeys, selectedChildren, shouldRefreshLeftTree, breadValue, breadLastId } = storeToRefs(appStore);
+  const { selectedKeys, selectedChildren, shouldRefreshLeftTree, breadValue, breadLastId, breadChanges } = storeToRefs(appStore);
   const route = useRoute();
 
   // 使用props接收参数
@@ -274,7 +282,7 @@
 
     if (response.data.obj.error == "") {
       message.success("操作成功");
-      leftLibraryTree(selectedChildren.value);
+      fetchLibraryTree(selectedChildren.value);
     } else {
       message.error(response.data.obj.error);
     }
@@ -293,7 +301,9 @@
     console.log("接口请求成功:", response);
     if (response.data.obj.error == "") {
       message.success(response.data.msg);
-      leftLibraryTree(selectedKeys.value);
+      fetchLibraryTree(selectedKeys.value);
+      // 更新文库基本信息 KB
+      callChildMethod();
     } else {
       message.error(response.data.obj.error);
     }
@@ -312,7 +322,7 @@
     if (response.data.obj.error == "") {
       console.log("接口请求成功:", response);
       message.success(response.data.msg);
-      leftLibraryTree(item.pid);
+      fetchLibraryTree(item.pid);
     } else {
       message.error(response.data.obj.error);
     }
@@ -330,7 +340,7 @@
     // if (response.data.obj.error == "") {
     //   console.log("接口请求成功:", response);
     //   message.success(response.data.msg);
-    //   leftLibraryTree(item.pid);
+    //   fetchLibraryTree(item.pid);
     // }
   };
   // 点击下一级
@@ -339,7 +349,7 @@
     selectedChildren.value = item.id_;
     if (item.type == "folder") {
       appStore.addBread(item.id_, item.name);
-      leftLibraryTree(item.id_);
+      fetchLibraryTree(item.id_);
     } else if (item.type == "file") {
       // 文件
       console.log("文件");
@@ -355,7 +365,7 @@
     //   fileList.value[index].name = updatedItem.name; // 更新名称
     // }
     // 刷新左侧 文件夹树
-    leftLibraryTree(selectedChildren.value);
+    fetchLibraryTree(selectedChildren.value);
   };
   // 防抖函数
   const debounce = (fn, delay) => {
@@ -392,7 +402,7 @@
     }
   };
   // 应用防抖的 leftLibraryTree
-  const leftLibraryTree = debounce(fetchLibraryTree, 150); // 300ms 防抖
+  const leftLibraryTree = debounce(fetchLibraryTree, 100); // 300ms 防抖
 
   // 初始化时调用
   onMounted(() => {
@@ -401,7 +411,7 @@
     console.log(appStore.selectedChildren);
     const currentPath = props.id || appStore.selectedChildren;
     if (currentPath) {
-      leftLibraryTree(currentPath);
+      fetchLibraryTree(currentPath);
     }
   });
   // 监听路由参数变化
@@ -409,14 +419,14 @@
   watch(
     () => props.id,
     (newId) => {
-      leftLibraryTree(newId);
+      fetchLibraryTree(newId);
     }
   );
   // 监听refreshKey变化
   watch(
     () => appStore.refreshKey,
     () => {
-      leftLibraryTree(selectedChildren.value); // 重新获取当前路由的文件列表
+      fetchLibraryTree(selectedChildren.value); // 重新获取当前路由的文件列表
     }
   );
   // 添加文件夹后，刷新第二个左侧树
@@ -424,13 +434,13 @@
     // 获取当前点击的路径
     const currentPath = selectedChildren.value;
     if (currentPath) {
-      leftLibraryTree(currentPath); // 精准刷新当前目录
+      fetchLibraryTree(currentPath); // 精准刷新当前目录
     }
   });
   // 面包屑退回，监听变化，重新获取列表
-  watch(breadLastId, () => {
+  watch(breadChanges, () => {
     // 获取当前点击的路径
-    leftLibraryTree(breadLastId.value); // 精准刷新当前目录
+    fetchLibraryTree(breadLastId.value); // 精准刷新当前目录
   });
 
   // 处理子组件 treeSelect 传来的更新
@@ -446,7 +456,7 @@
 
       if (response.data.code == 1) {
         message.success("移动成功");
-        leftLibraryTree(selectedChildren.value);
+        fetchLibraryTree(selectedChildren.value);
         console.log("接口请求成功:", response);
       }
     } catch (error) {

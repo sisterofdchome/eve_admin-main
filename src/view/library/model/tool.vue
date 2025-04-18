@@ -11,7 +11,7 @@
       </div>
     </div>
     <div class="tool-right">
-      <div class="action-button hover-back">
+      <!-- <div class="action-button hover-back">
         <TagOutlined class="tool-icon" />
         <span>收藏</span>
       </div>
@@ -44,7 +44,7 @@
           <EllipsisOutlined class="tool-icon" />
           <span>更多</span>
         </div>
-      </a-popover>
+      </a-popover> -->
 
       <div class="more-acitons-line"></div>
       <div class="more-actions">

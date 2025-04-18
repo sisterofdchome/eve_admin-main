@@ -4,7 +4,7 @@ import { message } from "ant-design-vue";
 //创建一个新的请求实例instance,instance.的用法和axios.的用法一致，可以使用instance({})、instance.get（）、instance.post()
 const instace = axios.create({
   // baseURL: import.meta.env.VITE_API_URL, //默认配置(这里不要用process.env,个人百度这个在vite中被废弃掉了,属性名必须以VITE_API_开头,否则 import.meta.env检测不到)
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: "https://oa.scnjwh.com/luqiao/",
   timeout: 5000, //超时时间
 });
 
@@ -14,7 +14,7 @@ instace.interceptors.request.use(
   (config) => {
     config.headers["Authorization"] =
       "Basic " +
-      "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6Im1vYmlsZSIsIm1hbmFnZU9yZyI6IjEwMDAwMDE3NjY0NDMwIiwiZXhwIjoxNzQ0NzkwMjg2LCJpYXQiOjE3NDQ3NjUwODZ9.VemHV94mEA3SVoDoZuzi49534CnfuRTzOZw1-c1vDIhhU9xPImWbyfpu8RE8NPFiAQdOhjFSQaCJFLr93x_avg"; // 这里自定义配置，这里传的是token
+      "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6IndlYiIsImV4cCI6MTYyNjQwMzMyMiwiaWF0IjoxNjI1Nzk4NTIyfQ.2G4Adf3TxOJofPrsatygjN6b-vF64A5QDig9PkpExqffRyarNYG6ZLLV7ig7vDbNt7b-vjhWcnwZXvliJLzSZA"; // 这里自定义配置，这里传的是token
     config.headers["Content-Type"] = "application/x-www-form-urlencoded";
     return config;
   },

@@ -6,7 +6,7 @@
         <template v-if="column.dataIndex === 'name'">
           <div class="editable-cell"><img src="../../assets/file/doc.png" height="20px" />{{ record.name }}</div>
         </template>
-        <template v-if="column.dataIndex === 'deleted_time'">
+        <!-- <template v-if="column.dataIndex === 'deleted_time'">
           <div class="editable-cell">
             {{
               dayjs(
@@ -14,7 +14,7 @@
               ).format("YYYY-MM-DD HH:mm:ss")
             }}
           </div>
-        </template>
+        </template> -->
         <template v-if="column.dataIndex === 'operation'">
           <div class="editable-row-operations">
             <span>

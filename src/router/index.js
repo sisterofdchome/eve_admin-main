@@ -1,9 +1,11 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory,createWebHashHistory } from 'vue-router'
 import { useAppStore, useUserStore } from '@/store'
+
 import pinia from '@/store'
 
 const router = createRouter({
-  history: createWebHistory(''),
+  // history: createWebHistory(''),
+  history:createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '',

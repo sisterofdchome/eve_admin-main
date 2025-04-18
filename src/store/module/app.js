@@ -19,10 +19,12 @@ export const useAppStore = defineStore("app", {
       clickLibraryStatus: false, //刷新文库设置信息
       //面包屑数组
       breadValue: [
-        {id:0,name:0,url:0},{id:1,name:1,url:1}
-      ], 
+        { id: 0, name: 0, url: 0 },
+        { id: 1, name: 1, url: 1 },
+      ],
       // 退回时候，最后一个id
       breadLastId: "",
+      breadChanges: 0,
     };
   },
   actions: {
@@ -39,6 +41,7 @@ export const useAppStore = defineStore("app", {
       this.breadValue.pop(); // 删除最后一项
       this.breadLastId = this.breadValue[this.breadValue.length - 1].id;
       // return id;
+      this.breadChanges++;
     },
     triggerLeftTreeRefresh() {
       this.shouldRefreshLeftTree = !this.shouldRefreshLeftTree;
