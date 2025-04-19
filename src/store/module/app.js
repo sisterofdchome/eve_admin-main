@@ -40,6 +40,7 @@ export const useAppStore = defineStore("app", {
     backBread() {
       this.breadValue.pop(); // 删除最后一项
       this.breadLastId = this.breadValue[this.breadValue.length - 1].id;
+      this.selectedChildren = this.breadLastId;
       // return id;
       this.breadChanges++;
     },
