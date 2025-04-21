@@ -71,13 +71,15 @@
   const handleLibraryClick = (item) => {
     if (item.url) {
       selectedKeys.value = item.id_;
-      router.push({
-        path: item.url, // 直接使用配置的 url
-        query: {
-          id: item.id_,
-          title: item.name,
-        },
-      });
+
+      router.push(item.url);
+      // router.push({
+      //   path: item.url, // 直接使用配置的 url
+      //   query: {
+      //     id: item.id_,
+      //     title: item.name,
+      //   },
+      // });
     }
   };
   /**
@@ -96,7 +98,10 @@
         console.log(1);
         libraryData.value = response.data.obj.data;
         libraryData.value.forEach((item, index) => {
-          item.url = "/library";
+          // item.url = "/library";
+          item.key = item.id_;
+          item.icon = "svg-wxz";
+          item.url = "/library/" + item.id_;
         });
         console.log(libraryData.value);
       }

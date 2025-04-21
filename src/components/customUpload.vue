@@ -3,16 +3,19 @@
     <a-upload v-model:file-list="fileList" :custom-request="customRequest" multiple>
       <a-button type="primary"> 上传 </a-button>
       <template #itemRender="{ file, actions }">
+        {{ file.name.split(".")[-1] }}
         <div class="ant-file-box">
           <div class="ant-item-thumbnail flex">
-            <a class="fa fa-file-o"></a>
+            <!-- <a class="fa fa-file-o"></a> -->
+            <!-- <img :src="`../assets/file/${file.name.split('.').pop()}.png`" style="height: 24px; width: 21px" /> -->
+            <img :src="'./file_img/' + file.name.split('.').pop() + '.png'" style="height: 24px; width: 21px" />
           </div>
           <div class="ant-file-name">
             <div @click="previewFile(file)" :style="file.status === 'error' ? 'color: red' : ''">{{ file.name }}</div>
             <a-progress v-if="file.status == 'uploading'" :percent="percent[file.uid]" size="small"></a-progress>
           </div>
           <div class="flex">
-            <a href="javascript:;" @click="down(file)" style="padding: 0 12px">下载</a>
+            <!-- <a href="javascript:;" @click="down(file)" style="padding: 0 12px">下载</a> -->
             <a href="javascript:;" @click="delFile(file)">
               <!-- <icon class="fa fa-times"></icon> -->
               X

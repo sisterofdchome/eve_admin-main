@@ -44,7 +44,7 @@
 
         const formData = {
           type: "update",
-          classification_name: LibraryForm.libraryName,
+          file_name: LibraryForm.libraryName,
           id_: LibraryForm.id_,
         };
         let response;

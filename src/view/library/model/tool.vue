@@ -1,8 +1,8 @@
 <template>
-  <div class="knowledge-info-top-tool">
+  <div class="knowledge-info-top-tool" style="z-index: 10">
     <div class="tool-left">
       <a-breadcrumb>
-        <a-breadcrumb-item v-for="(item, index) in breadValue" :key="index">
+        <a-breadcrumb-item v-for="(item, index) in breadValue" :key="index" @click="handleBreadItemClick(item, index)" style="cursor: pointer">
           {{ item.name }}
         </a-breadcrumb-item>
       </a-breadcrumb>
@@ -11,15 +11,31 @@
       </div>
     </div>
     <div class="tool-right">
-      <!-- <div class="action-button hover-back">
-        <TagOutlined class="tool-icon" />
-        <span>收藏</span>
+      <div v-if="fileVisible" class="action-button hover-back">
+        <div v-if="isFavorite == '0'" @click="collectHandleOk(collectValue)">
+          <TagOutlined class="tool-icon" />
+          <span>收藏</span>
+        </div>
+        <div v-else>
+          <TagOutlined class="tool-icon" style="color: #1e6fff" @click="folderDelete(isFavorite)" />
+          <span>取消收藏</span>
+        </div>
       </div>
-      <div class="action-button hover-back">
+      <!-- <div v-if="fileVisible" class="action-button hover-back">
         <FullscreenOutlined class="tool-icon" />
         <span>全屏</span>
+      </div> -->
+      <div v-if="fileVisible" class="action-button hover-back" @click="toggleFullscreen">
+        <template v-if="!isFullscreen">
+          <FullscreenOutlined class="tool-icon" />
+          <span>全屏</span>
+        </template>
+        <template v-else>
+          <FullscreenExitOutlined class="tool-icon" />
+          <span>取消全屏</span>
+        </template>
       </div>
-      <a-popover placement="bottom" trigger="click">
+      <a-popover v-if="fileVisible" placement="bottom" trigger="click">
         <template #content>
           <div class="more-item more-item-top">
             <span class="more-icon">
@@ -44,7 +60,7 @@
           <EllipsisOutlined class="tool-icon" />
           <span>更多</span>
         </div>
-      </a-popover> -->
+      </a-popover>
 
       <div class="more-acitons-line"></div>
       <div class="more-actions">
@@ -80,6 +96,7 @@
     DeleteOutlined,
     FormOutlined,
     FullscreenOutlined,
+    FullscreenExitOutlined,
     EllipsisOutlined,
     ReconciliationOutlined,
     UsergroupAddOutlined,
@@ -99,10 +116,24 @@
   const router = useRouter();
   const appStore = useAppStore();
   // 引入appStore中的属性
-  const { selectedKeys, breadValue, breadLength } = storeToRefs(appStore);
+  const { selectedKeys, breadValue, breadLength, fileVisible, backLibrary, breadChanges, selectedChildren, breadLastId } = storeToRefs(appStore);
 
   const informationRef = ref(null);
   const personnelRef = ref(null);
+
+  // 接收父组件传递的全屏状态和方法
+  const props = defineProps({
+    isFullscreen: Boolean,
+    toggleFullscreen: Function,
+    collectValue: {
+      type: String,
+      required: true,
+    },
+    isFavorite: {
+      type: String,
+      required: true,
+    },
+  });
 
   // 文库信息弹窗
   const settingHandle = (item, index) => {
@@ -123,9 +154,52 @@
       // 跳转到第一个面包屑的URL
       router.push(breadValue.value[0].url);
       selectedKeys.value = -12;
+      backLibrary.value = true;
+      fileVisible.value = false;
     } else {
       appStore.backBread();
     }
+  };
+  // 新增：处理面包屑项点击
+  const handleBreadItemClick = (item, index) => {
+    console.log("面包屑处理前", breadValue.value);
+    if (index === breadValue.value.length - 1) {
+      // 如果点击的是最后一项，不执行任何操作
+      return;
+    }
+    // 如果是第一项，返回全部文库
+    if (index === 0) {
+      breadValue.value = breadValue.value.slice(0, 2);
+      router.push(breadValue.value[0].url);
+      selectedKeys.value = -12;
+      backLibrary.value = true;
+      fileVisible.value = false;
+      return;
+    }
+
+    // 截断面包屑到点击的项（包含该项）
+    breadValue.value = breadValue.value.slice(0, index + 1);
+
+    // 更新 selectedKeys 和 selectedChildren
+    selectedKeys.value = item.id;
+    appStore.selectChildren(item.id);
+
+    // 如果点击的是第一项，特殊处理
+    // if (index === 0) {
+    //   router.push(breadValue.value[0].url);
+    //   selectedKeys.value = -12;
+    //   backLibrary.value = true;
+    //   fileVisible.value = false;
+    // } else {
+
+    // }
+    // 跳转到对应 URL
+    router.push(item.url);
+    fileVisible.value = false;
+    breadLastId.value = breadValue.value[breadValue.value.length - 1].id;
+    selectedChildren.value = breadLastId.value;
+    breadChanges.value++;
+    console.log("面包屑处理后", breadValue.value);
   };
 </script>
 

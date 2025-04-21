@@ -3,6 +3,8 @@ import { h } from "vue";
 import * as icons from "@ant-design/icons-vue";
 import routerComponents from "@/router/view_component";
 import router from "@/router/index.js";
+import { postcollectapi } from "../../api/index.js";
+import { message } from "ant-design-vue";
 
 export const useAppStore = defineStore("app", {
   state: () => {
@@ -25,15 +27,33 @@ export const useAppStore = defineStore("app", {
       // 退回时候，最后一个id
       breadLastId: "",
       breadChanges: 0,
+      // 文件详情页面
+      // 控制是否点击了文档
+      fileVisible: false,
+      // 是否回到了文库
+      backLibrary: false,
+      //
+      currentFavoriteId: "", // 当前操作的收藏项ID
+      isFavorite: "0", // 收藏状态（0未收藏，1已收藏）
     };
   },
   actions: {
+    // 更新收藏状态
+    updateFavoriteStatus(id, status) {
+      this.currentFavoriteId = id;
+      this.isFavorite = status;
+    },
+    // 改变文档详情页面的显示状态
+    fileVisibleTrue() {
+      this.fileVisible = true;
+    },
     // 初始化面包屑数组
     initBread() {
       this.breadValue = this.breadValue.slice(0, 2);
     },
     // 面包屑增加
     addBread(id, name, url) {
+      this.fileVisible = false;
       this.breadValue.push({ id: id, name: name, url: url });
     },
     // 面包屑退回
@@ -69,6 +89,30 @@ export const useAppStore = defineStore("app", {
     },
     selectChildren(key) {
       this.selectedChildren = key;
+    },
+    async toggleFavorite(item) {
+      try {
+        const actionType = item.is_favorite ? "delete" : "add";
+        const formData = {
+          type: actionType,
+          favorite_id: item.id_,
+        };
+
+        const response = await postcollectapi(qs.stringify(formData));
+        if (response.data.obj.error) {
+          throw new Error(response.data.obj.error);
+        }
+
+        // 更新全局状态
+        this.isFavorite = actionType === "add" ? "1" : "0";
+        this.currentFavoriteId = item.id_;
+
+        message.success(actionType === "add" ? "收藏成功" : "取消收藏成功");
+        return true;
+      } catch (error) {
+        message.error(`操作失败: ${error.message}`);
+        return false;
+      }
     },
     setMenu(menu) {
       // 首先深拷贝一下menu参数，因为这里需要对参数值进行一些修改

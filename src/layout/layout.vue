@@ -90,7 +90,7 @@
   const selectedValue = ref("");
   const appStore = useAppStore();
   // 引入appStore中的属性
-  const { sideCollapsed, theme, menu, selectedKeys, openKeys, selectedChildren, shouldRefreshLeftLibrary, breadValue, breadLength } = storeToRefs(appStore);
+  const { sideCollapsed, theme, menu, selectedKeys, openKeys, selectedChildren, shouldRefreshLeftLibrary, breadValue, breadLength, backLibrary, fileVisible } = storeToRefs(appStore);
   const router = useRouter();
   // 定义App操作类，
   const appAction = {
@@ -107,6 +107,7 @@
     console.log(item);
     console.log(index);
     console.log(index2);
+    console.log("toPath测试测试", breadValue.value);
     // 初始化面包屑
     if (breadValue.value[1].url != item.url) {
       appStore.initBread();
@@ -122,7 +123,10 @@
     // 更新点击时的文件夹id
     selectedChildren.value = item.key;
 
+    backLibrary.value = true;
+
     console.log("item.url", item.url);
+    fileVisible.value = false;
 
     // 生成带参数的路由路径
     // const targetPath = item.key.replace(/:id/, item.id_);
@@ -139,7 +143,7 @@
   };
   // 处理面包屑
   const changeBread = (item, index, index2) => {
-    const first = index2 == 1 ? "全部文库" : "我的文库";
+    const first = index2 == 0 ? "全部文库" : "我的文库";
     // appStore.addBread(first);
     // appStore.addBread(item.name);
     breadValue.value[0] = { id: 0, name: first, url: `/allLibrary/${first}` };
@@ -147,14 +151,14 @@
 
     console.log(breadValue.value);
   };
-  const menuIndex = ref(-11);
+  const menuIndex = ref(-12);
   const menuList = ref([
-    {
-      title: "首页",
-      key: "-11",
-      icon: "home",
-      url: "/index",
-    },
+    // {
+    //   title: "首页",
+    //   key: "-11",
+    //   icon: "home",
+    //   url: "/index",
+    // },
     {
       title: "全部文库",
       key: "-12",
@@ -205,12 +209,12 @@
   ]);
 
   onMounted(() => {
-    leftLibraryList();
-
     setTimeout(() => {
       router.push({
-        path: "/index", // 直接使用配置的 url
+        // path: "/index", // 直接使用配置的 url
+        path: "/allLibrary/全部文库", // 直接使用配置的 url
       });
+      leftLibraryList();
     }, 500);
   });
 
@@ -223,9 +227,9 @@
     const response = await postlibraryapi(qs.stringify(formData)); // 调用接口
     console.log("接口请求成功:", response);
     if (response.data.code == 1) {
-      menuList.value[1].children = response.data.obj.data;
+      menuList.value[0].children = response.data.obj.data;
       console.log(menuList.value);
-      menuList.value[1].children.forEach((item, index) => {
+      menuList.value[0].children.forEach((item, index) => {
         item.key = item.id_;
         item.icon = "svg-wxz";
         item.url = "/library/" + item.id_;

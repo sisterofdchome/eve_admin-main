@@ -38,6 +38,7 @@
   import { reactive, ref, toRaw, watch } from "vue";
   import { onMounted, computed } from "vue";
   import { FolderOutlined } from "@ant-design/icons-vue";
+  import { message } from "ant-design-vue";
   import { postlibraryapi } from "../../../api/index.js";
   import qs from "qs";
 
@@ -186,10 +187,14 @@
   );
 
   const libraryHandleOk = () => {
-    // 触发事件，传递更新后的数据
-    emit("selectSuccess", selectedKey.value[0]);
-    visible.value = false;
-    selectedKey.value = [];
+    if (selectedKey.value[0] == "" || selectedKey.value[0] == undefined) {
+      message.error("请选择文件夹");
+    } else {
+      // 触发事件，传递更新后的数据
+      emit("selectSuccess", selectedKey.value[0]);
+      visible.value = false;
+      selectedKey.value = [];
+    }
   };
   // 防抖处理
   watch(searchKeyword, (newVal) => {

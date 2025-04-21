@@ -44,19 +44,19 @@
               <div class="line"></div>
               <div class="show-item" style="font-weight: bold">
                 <div class="show-title"><FileZipTwoTone /><span style="margin-left: 4px">文件大小</span></div>
-                <div class="show-num">{{ formState.formattedSize }}</div>
+                <div class="show-num">{{ formState.size }}KB</div>
               </div>
             </div>
-            <!-- <div class="top-file-box">
+            <div class="top-file-box">
               <div class="top-title-action">
                 <div class="title" style="font-weight: bold">推荐内容</div>
                 <div class="view-type-box">
-                  <span class="el-only-child__content el-tooltip__trigger el-tooltip__trigger"></span>
-                      <span class="el-only-child__content el-tooltip__trigger el-tooltip__trigger"></span>
+                  <!-- <span class="el-only-child__content el-tooltip__trigger el-tooltip__trigger"></span>
+                      <span class="el-only-child__content el-tooltip__trigger el-tooltip__trigger"></span> -->
                 </div>
               </div>
               <div class="top-file-map"></div>
-              
+              <!---->
               <div><a-empty></a-empty></div>
             </div>
             <div class="update-box">
@@ -71,9 +71,9 @@
                   <div class="item-time" style="width: 20%"><span class="el-tooltip__trigger">2025-04-10 16:25:25</span></div>
                   <div class="bottom-line"></div>
                 </div>
-                
+                <!---->
               </div>
-            </div> -->
+            </div>
           </div>
           <!---->
         </div>
@@ -117,7 +117,7 @@
     classification_name: "",
     number_files: "",
     create_name: "",
-    formattedSize: "",
+    size: "",
     create_time: "",
   });
   // 获取文库信息
@@ -132,11 +132,7 @@
       console.log(response);
       dataList.value = response.data.obj.data;
       const { classification_name, number_files, create_name, size, create_time } = response.data.obj.data;
-      console.log(size);
-
-      // 调用 bytesToSize 转换 size
-      const formattedSize = bytesToSize(size);
-      Object.assign(formState, { classification_name, number_files, create_name, formattedSize, create_time });
+      Object.assign(formState, { classification_name, number_files, create_name, size, create_time });
     }
   };
 
@@ -145,36 +141,6 @@
   const settinghandle = () => {
     console.log(dataList.value);
     settingRef.value.showDrawer(dataList.value);
-  };
-
-  const bytesToSize = (size) => {
-    let sizeStr;
-
-    if (size < 0.1 * 1024) {
-      // 小于0.1KB，转化为B
-      sizeStr = size.toFixed(2) + "B";
-    } else if (size < 0.1 * 1024 * 1024) {
-      // 小于0.1MB，转化为KB
-      sizeStr = (size / 1024).toFixed(2) + "KB";
-    } else if (size < 0.1 * 1024 * 1024 * 1024) {
-      // 小于0.1GB，转化为MB
-      sizeStr = (size / (1024 * 1024)).toFixed(2) + "MB";
-    } else {
-      // 其他转化为GB
-      sizeStr = (size / (1024 * 1024 * 1024)).toFixed(2) + "GB";
-    }
-
-    // 获取小数点位置
-    const index = sizeStr.indexOf(".");
-    // 获取小数点后两位
-    const dou = sizeStr.slice(index + 1, index + 3);
-
-    // 如果小数点后两位是 '00'，去掉小数部分
-    if (dou === "00") {
-      return sizeStr.substring(0, index) + sizeStr.slice(index + 3);
-    }
-
-    return sizeStr;
   };
   // 监听路由参数变化
   watch(

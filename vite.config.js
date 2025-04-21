@@ -6,8 +6,8 @@ import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "./",
-  publicPath: "./",
-  publicDir: "./public",
+  filePath: "./library/file_img",
+  fileDir: "./library/file_img",
   plugins: [
     createSvgIconsPlugin({
       iconDirs: [path.resolve(process.cwd(), "src/assets/icons")],

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Tool></Tool>
+    <Tool :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen" :collectValue="menuIndex"></Tool>
     <div class="knowledge-info-body">
       <div class="knowledge-left" style="width: 240px">
         <div class="knowledge-tree-search">
@@ -34,10 +34,18 @@
         <div class="list-box">
           <!-- 添加加载状态 -->
           <a-spin :spinning="loading" tip="加载中...">
-            <div v-if="fileList.length > 0" class="libary-item" v-for="(item, index) in fileList" @click="fileHandle(item)">
+            <div
+              v-if="fileList.length > 0"
+              class="libary-item"
+              :class="menuIndex == item.id_ ? 'libary-item silder-item-active' : 'libary-item'"
+              v-for="(item, index) in fileList"
+              @click="fileHandle(item)"
+            >
               <div class="content">
                 <img v-if="item.type == 'folder'" src="../../assets/file/folder.png" height="20px" />
-                <img v-else src="../../assets/file/doc.png" height="20px" />
+                <!-- <img v-else src="../../assets/file/doc.png" height="20px" /> -->
+                <!-- file_extension -->
+                <img v-else :src="'./file_img/' + item.name.split('.').pop() + '.png'" style="height: 20px" />
                 <div class="libary-info">
                   <div class="">
                     <div class="libary-name">{{ item.name }}</div>
@@ -140,8 +148,27 @@
         <div class="file-view-box"></div>
         <Comment></Comment>
       </div> -->
-      <!-- 详情页 -->
-      <div style="width: 100%">
+      <!-- 文件详情页 -->
+      <div v-if="fileVisible && !backLibrary" style="width: 100%">
+        <!-- <fileContent ref="fileContentRef" :id="id"></fileContent> -->
+        <!-- <div class="knowledge-right" style="width: calc(100% - 240px); height: calc(100vh - 127px); overflow: overlay"> -->
+        <div class="knowledge-right">
+          <!-- <div class="file-view-box"></div> -->
+          <div class="file-view-box" :class="{ 'fullscreen-mode': isFullscreen }">
+            <Tool v-if="isFullscreen" :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen"></Tool>
+          </div>
+          <Comment></Comment>
+        </div>
+      </div>
+      <!-- 文件夹页 -->
+      <div v-else-if="!fileVisible && !backLibrary" style="width: 100%; justify-content: center; display: flex; align-items: center">
+        <a-empty>
+          <template #description>
+            <span> 在左侧目录选择文件进行预览 </span>
+          </template>
+        </a-empty>
+      </div>
+      <div v-else-if="!fileVisible && backLibrary" style="width: 100%">
         <LibraryContent ref="libraryContentRef" :id="id"></LibraryContent>
       </div>
     </div>
@@ -178,6 +205,7 @@
   import Tool from "./model/tool.vue";
   import Comment from "./model/comment.vue";
   import LibraryContent from "./model/libraryContent.vue";
+  import fileContent from "./model/fileContent.vue";
   import Setting from "./model/setting.vue";
   import Editor from "./model/editor.vue";
   import { message, Modal } from "ant-design-vue";
@@ -193,13 +221,22 @@
   const appStore = useAppStore();
 
   const settingTitle = ref("");
+  const fileContentRef = ref(null);
   const libraryContentRef = ref(null);
+
+  const menuIndex = ref(0);
 
   // 调用子组件方法
   const callChildMethod = () => {
     if (libraryContentRef.value) {
       libraryContentRef.value.getLibraryImformation(props.id);
     }
+  };
+
+  // 添加全屏状态
+  const isFullscreen = ref(false);
+  const toggleFullscreen = () => {
+    isFullscreen.value = !isFullscreen.value;
   };
 
   // 二级目录数据
@@ -219,7 +256,7 @@
   const currentId = ref("");
 
   // 引入appStore中的属性
-  const { selectedKeys, selectedChildren, shouldRefreshLeftTree, breadValue, breadLastId, breadChanges } = storeToRefs(appStore);
+  const { selectedKeys, selectedChildren, shouldRefreshLeftTree, breadValue, breadLastId, breadChanges, fileVisible, backLibrary, isFavorite } = storeToRefs(appStore);
   const route = useRoute();
 
   // 使用props接收参数
@@ -335,26 +372,40 @@
       type: "delete",
       id_: item.is_favorite,
     };
-    // const response = await postcollectapi(qs.stringify(formData));
+    const response = await postcollectapi(qs.stringify(formData));
 
-    // if (response.data.obj.error == "") {
-    //   console.log("接口请求成功:", response);
-    //   message.success(response.data.msg);
-    //   fetchLibraryTree(item.pid);
-    // }
+    if (response.data.obj.error == "取消收藏成功") {
+      console.log("接口请求成功:", response);
+      message.success(response.data.msg);
+      fetchLibraryTree(item.pid);
+    } else {
+      message.error(response.data.obj.error);
+    }
   };
   // 点击下一级
   const fileHandle = (item) => {
     console.log(item);
-    selectedChildren.value = item.id_;
+    backLibrary.value = false;
+
     if (item.type == "folder") {
-      appStore.addBread(item.id_, item.name);
+      selectedChildren.value = item.id_;
+      // 添加面包屑
+      appStore.addBread(item.id_, item.name, "/library/" + item.id_);
+      // 刷新左侧 文件夹树
       fetchLibraryTree(item.id_);
+      // 初始化
+      menuIndex.value = 0;
     } else if (item.type == "file") {
       // 文件
       console.log("文件");
       // 提示弹窗
       message.info("文件详情还在开发中！~");
+      // 显示文件详情
+      appStore.fileVisibleTrue();
+      // 文件选中  高亮
+      menuIndex.value = item.id_;
+      // 是否收藏
+      isFavorite.value = item.is_favorite;
     }
   };
 
@@ -420,6 +471,7 @@
     () => props.id,
     (newId) => {
       fetchLibraryTree(newId);
+      menuIndex.value = 0;
     }
   );
   // 监听refreshKey变化
@@ -520,6 +572,11 @@
     margin-left: 24px;
     display: flex;
     align-items: center;
+  }
+
+  .silder-item-active {
+    background: #e6f4ff !important;
+    border-radius: 4px;
   }
 
   .libary-item {
@@ -661,5 +718,17 @@
     color: #6f7588;
     font-size: 14px;
     padding: 20px;
+  }
+
+  /* 添加全屏样式 */
+  .fullscreen-mode {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9 !important;
+    background: white;
+    overflow: auto;
   }
 </style>

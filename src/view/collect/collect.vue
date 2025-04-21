@@ -11,7 +11,7 @@
             <a-tooltip>
               <template #title>取消收藏</template>
               <span>
-                <a @click="recycle(record)"><HeartFilled style="color: #fbbb00" /></a>
+                <a @click="recycle(record)"><HeartFilled style="color: red" /></a>
               </span>
             </a-tooltip>
           </div>
