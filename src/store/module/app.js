@@ -5,6 +5,7 @@ import routerComponents from "@/router/view_component";
 import router from "@/router/index.js";
 import { postcollectapi } from "../../api/index.js";
 import { message } from "ant-design-vue";
+import qs from "qs";
 
 export const useAppStore = defineStore("app", {
   state: () => {
@@ -34,7 +35,8 @@ export const useAppStore = defineStore("app", {
       backLibrary: false,
       //
       currentFavoriteId: "", // 当前操作的收藏项ID
-      isFavorite: "0", // 收藏状态（0未收藏，1已收藏）
+      isFavorite: 0, // 收藏状态（0未收藏，1已收藏）
+      selectedFileId: "", // 当前选中的文件ID
     };
   },
   actions: {
@@ -95,19 +97,21 @@ export const useAppStore = defineStore("app", {
         const actionType = item.is_favorite ? "delete" : "add";
         const formData = {
           type: actionType,
-          favorite_id: item.id_,
+          [actionType === "add" ? "favorite_id" : "id_"]: actionType === "add" ? item.id_ : item.is_favorite
         };
-
+    
         const response = await postcollectapi(qs.stringify(formData));
-        if (response.data.obj.error) {
-          throw new Error(response.data.obj.error);
+        
+        if (response.data.code !== 1) {
+          throw new Error(response.data.msg);
         }
-
+    
         // 更新全局状态
-        this.isFavorite = actionType === "add" ? "1" : "0";
         this.currentFavoriteId = item.id_;
-
+        this.isFavorite = actionType === "add" ? "1" : 0;
+        
         message.success(actionType === "add" ? "收藏成功" : "取消收藏成功");
+        this.refreshKey++
         return true;
       } catch (error) {
         message.error(`操作失败: ${error.message}`);

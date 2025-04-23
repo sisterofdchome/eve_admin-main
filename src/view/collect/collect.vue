@@ -104,7 +104,7 @@
       };
       const response = await postcollectapi(qs.stringify(Data));
 
-      if (response.data.obj.error == "") {
+      if (response.data.obj.error == "取消收藏成功") {
         console.log("接口请求成功:", response);
         message.success("收藏取消成功");
         // 更新

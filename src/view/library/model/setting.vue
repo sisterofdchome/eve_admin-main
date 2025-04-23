@@ -1,5 +1,5 @@
 <template>
-  <a-drawer title="文库设置" :placement="placement" :closable="false" :visible="visible" @close="onClose" width="800px" class="setting-drawer">
+  <a-drawer :title="`${title}设置`" :placement="placement" :closable="false" :visible="visible" @close="onClose" width="800px" class="setting-drawer">
     <div class="know-set-body">
       <div class="nav-list">
         <div :class="indexNav == index ? 'nav-item nav-active' : 'nav-item'" v-for="(item, index) in settingNav" @click="changeMenu(index)">
@@ -54,7 +54,7 @@
         </div>
       </div>
       <div class="nav-body" v-if="indexNav == 1">
-        <div class="nav-title">文档权限</div>
+        <div class="nav-title">{{ title }}权限</div>
         <div class="nav-content">
           <div class="auth-box">
             <div class="item-title">
@@ -258,14 +258,15 @@
   const saveHandleOk = async () => {
     const formData = {
       type: "update",
-      classification_name: formState.classification_name,
       id_: id_.value,
     };
     let response;
     if (settingTitle.value == "文档") {
+      formData.file_name = formState.classification_name;
       // 文档更新名称
       response = await postFileapi(qs.stringify(formData)); // 调用接口
     } else {
+      formData.classification_name = formState.classification_name;
       // 文件夹更新名称
       response = await postlibraryapi(qs.stringify(formData));
     }

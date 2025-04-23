@@ -11,7 +11,7 @@
       </div>
     </div>
     <div class="tool-right">
-      <div v-if="fileVisible" class="action-button hover-back">
+      <!-- <div v-if="fileVisible" class="action-button hover-back">
         <div v-if="isFavorite == '0'" @click="collectHandleOk(collectValue)">
           <TagOutlined class="tool-icon" />
           <span>收藏</span>
@@ -19,6 +19,12 @@
         <div v-else>
           <TagOutlined class="tool-icon" style="color: #1e6fff" @click="folderDelete(isFavorite)" />
           <span>取消收藏</span>
+        </div>
+      </div> -->
+      <div v-if="fileVisible" class="action-button hover-back">
+        <div @click="handleCollect">
+          <TagOutlined :style="{ color: appStore.isFavorite !== 0 ? '#1e6fff' : '' }" />
+          <span>{{ appStore.isFavorite !== 0 ? "取消收藏" : "收藏" }}</span>
         </div>
       </div>
       <!-- <div v-if="fileVisible" class="action-button hover-back">
@@ -37,24 +43,24 @@
       </div>
       <a-popover v-if="fileVisible" placement="bottom" trigger="click">
         <template #content>
-          <div class="more-item more-item-top">
+          <!-- <div class="more-item more-item-top">
             <span class="more-icon">
               <LinkOutlined />
             </span>
             <span class="more-name">复制链接</span>
-          </div>
-          <div class="more-item more-item-top">
+          </div> -->
+          <div class="more-item more-item-top" @click="downloadFile">
             <span class="more-icon">
               <DownloadOutlined />
             </span>
             <span class="more-name">文档下载</span>
           </div>
-          <div class="more-item more-item-top">
+          <!-- <div class="more-item more-item-top">
             <span class="more-icon">
               <SettingOutlined />
             </span>
             <span class="more-name">文档设置</span>
-          </div>
+          </div> -->
         </template>
         <div class="action-button hover-back">
           <EllipsisOutlined class="tool-icon" />
@@ -108,6 +114,9 @@
 
   import Information from "./libraryInformation.vue";
   import Personnel from "./personnel.vue";
+  import { postDownloadFile } from "../../../api/index.js";
+  import qs from "qs";
+  import { message } from "ant-design-vue";
 
   // 引入appStore
   import { useAppStore } from "../../../store/module/app";
@@ -116,7 +125,7 @@
   const router = useRouter();
   const appStore = useAppStore();
   // 引入appStore中的属性
-  const { selectedKeys, breadValue, breadLength, fileVisible, backLibrary, breadChanges, selectedChildren, breadLastId } = storeToRefs(appStore);
+  const { selectedKeys, breadValue, breadLength, fileVisible, backLibrary, breadChanges, selectedChildren, breadLastId, selectedFileId } = storeToRefs(appStore);
 
   const informationRef = ref(null);
   const personnelRef = ref(null);
@@ -125,14 +134,7 @@
   const props = defineProps({
     isFullscreen: Boolean,
     toggleFullscreen: Function,
-    collectValue: {
-      type: String,
-      required: true,
-    },
-    isFavorite: {
-      type: String,
-      required: true,
-    },
+    fileItem: Object,
   });
 
   // 文库信息弹窗
@@ -157,6 +159,7 @@
       backLibrary.value = true;
       fileVisible.value = false;
     } else {
+      fileVisible.value = false;
       appStore.backBread();
     }
   };
@@ -181,25 +184,43 @@
     breadValue.value = breadValue.value.slice(0, index + 1);
 
     // 更新 selectedKeys 和 selectedChildren
-    selectedKeys.value = item.id;
+    // selectedKeys.value = item.id;
     appStore.selectChildren(item.id);
 
-    // 如果点击的是第一项，特殊处理
-    // if (index === 0) {
-    //   router.push(breadValue.value[0].url);
-    //   selectedKeys.value = -12;
-    //   backLibrary.value = true;
-    //   fileVisible.value = false;
-    // } else {
-
-    // }
     // 跳转到对应 URL
     router.push(item.url);
     fileVisible.value = false;
     breadLastId.value = breadValue.value[breadValue.value.length - 1].id;
+    // 当前返回项的id
     selectedChildren.value = breadLastId.value;
     breadChanges.value++;
     console.log("面包屑处理后", breadValue.value);
+  };
+  // 本地收藏方法，调用 Store
+  const handleCollect = () => {
+    if (props.fileItem) {
+      appStore.toggleFavorite(props.fileItem).then(() => {
+        // 强制刷新父组件数据
+        appStore.triggerRefresh();
+      });
+    }
+  };
+
+  // 文件下载
+  const downloadFile = async () => {
+    const formData = {
+      sf: "1",
+      code: selectedFileId.value,
+    };
+    const response = await postDownloadFile(qs.stringify(formData));
+
+    console.log("接口请求成功:", response);
+    if (response.data.result) {
+      message.success("操作成功");
+      window.location.href = "https://oa.scnjwh.com/luqiao//jxload/view.pdf?code=" + response.data.message; // 触发文件下载
+    } else {
+      message.error("下载失败");
+    }
   };
 </script>
 

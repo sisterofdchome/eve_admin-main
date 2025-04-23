@@ -44,7 +44,7 @@
       <div class="details">
         <div class="flex">
           <div class="lable"><FileZipOutlined style="margin-right: 8px" />文件大小</div>
-          <div>{{ formState.size }}KB</div>
+          <div>{{ formState.formattedSize }}</div>
         </div>
       </div>
     </div>
@@ -88,7 +88,7 @@
     create_name: "",
     create_time: "",
     update_time: "",
-    size: "",
+    formattedSize: "",
   });
 
   onMounted(async () => {
@@ -108,11 +108,44 @@
       console.log("接口请求成功:", response);
       fileList.value = response.data.obj.data;
       const { classification_name, number_files, create_name, create_time, update_time, size } = response.data.obj.data;
-      Object.assign(formState, { classification_name, number_files, create_name, create_time, update_time, size });
+
+      // 调用 bytesToSize 转换 size
+      const formattedSize = bytesToSize(size);
+      Object.assign(formState, { classification_name, number_files, create_name, create_time, update_time, formattedSize });
 
       console.log("formStateformState:", formState);
       // message.success(response.data.msg);
     }
+  };
+
+  const bytesToSize = (size) => {
+    let sizeStr;
+
+    if (size < 0.1 * 1024) {
+      // 小于0.1KB，转化为B
+      sizeStr = size.toFixed(2) + "B";
+    } else if (size < 0.1 * 1024 * 1024) {
+      // 小于0.1MB，转化为KB
+      sizeStr = (size / 1024).toFixed(2) + "KB";
+    } else if (size < 0.1 * 1024 * 1024 * 1024) {
+      // 小于0.1GB，转化为MB
+      sizeStr = (size / (1024 * 1024)).toFixed(2) + "MB";
+    } else {
+      // 其他转化为GB
+      sizeStr = (size / (1024 * 1024 * 1024)).toFixed(2) + "GB";
+    }
+
+    // 获取小数点位置
+    const index = sizeStr.indexOf(".");
+    // 获取小数点后两位
+    const dou = sizeStr.slice(index + 1, index + 3);
+
+    // 如果小数点后两位是 '00'，去掉小数部分
+    if (dou === "00") {
+      return sizeStr.substring(0, index) + sizeStr.slice(index + 3);
+    }
+
+    return sizeStr;
   };
 
   const visible = ref(false);

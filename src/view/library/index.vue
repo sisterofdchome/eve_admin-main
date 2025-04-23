@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Tool :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen" :collectValue="menuIndex"></Tool>
+    <Tool :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen" :collectValue="menuIndex" :fileItem="fileList.find((item) => item.id_ === menuIndex)"></Tool>
     <div class="knowledge-info-body">
       <div class="knowledge-left" style="width: 240px">
         <div class="knowledge-tree-search">
@@ -31,9 +31,9 @@
             </template>
           </a-dropdown>
         </div>
-        <div class="list-box">
-          <!-- 添加加载状态 -->
-          <a-spin :spinning="loading" tip="加载中...">
+        <a-spin :spinning="loading" tip="加载中...">
+          <div class="list-box">
+            <!-- 添加加载状态 -->
             <div
               v-if="fileList.length > 0"
               class="libary-item"
@@ -74,7 +74,7 @@
                           </span>
                           <span class="more-name" @click="editHandle(item, index)">重命名( √ )</span>
                         </div>
-                        <div class="more-item" v-if="item.type == 'file'">
+                        <div class="more-item" v-if="item.type == 'file'" @click="downloadFile(item, index)">
                           <span class="more-icon">
                             <DownloadOutlined />
                           </span>
@@ -99,7 +99,7 @@
                           </span>
                           <span class="more-name">移动( √ )</span>
                         </div>
-                        <div class="more-item" v-if="item.type == 'file'">
+                        <!-- <div class="more-item" v-if="item.type == 'file'">
                           <div v-if="item.is_favorite == ''" style="display: flex; align-items: center" @click="collectHandleOk(item, index)">
                             <span class="more-icon">
                               <HeartOutlined style="color: #282828" />
@@ -112,7 +112,16 @@
                             </span>
                             <span class="more-name">取消收藏( √ )</span>
                           </div>
+                        </div> -->
+
+                        <div v-if="item.type == 'file'" class="more-item" @click="collectHand(item, index)">
+                          <span class="more-icon">
+                            <HeartOutlined v-if="!item.is_favorite" />
+                            <HeartFilled v-else style="color: #1e6fff" />
+                          </span>
+                          <span class="more-name"> {{ item.is_favorite ? "取消收藏" : "添加收藏" }}( √ ) </span>
                         </div>
+                        <!-- 标签 -->
                         <!-- <div class="more-item">
                           <span class="more-icon">
                             <BookOutlined />
@@ -140,8 +149,8 @@
               </div>
             </div>
             <div v-else><a-empty></a-empty></div>
-          </a-spin>
-        </div>
+          </div>
+        </a-spin>
       </div>
       <div class="tree-drop-width-line" style="left: 240px"></div>
       <!-- <div class="knowledge-right" style="width: calc(100% - 240px); height: calc(100vh - 127px); overflow: overlay">
@@ -209,7 +218,7 @@
   import Setting from "./model/setting.vue";
   import Editor from "./model/editor.vue";
   import { message, Modal } from "ant-design-vue";
-  import { postlibraryapi, postcollectapi, postFileapi } from "../../api/index.js";
+  import { postlibraryapi, postcollectapi, postFileapi, postDownloadFile } from "../../api/index.js";
   import qs from "qs";
   import { useAppStore } from "../../store/module/app";
 
@@ -256,7 +265,7 @@
   const currentId = ref("");
 
   // 引入appStore中的属性
-  const { selectedKeys, selectedChildren, shouldRefreshLeftTree, breadValue, breadLastId, breadChanges, fileVisible, backLibrary, isFavorite } = storeToRefs(appStore);
+  const { selectedKeys, selectedChildren, shouldRefreshLeftTree, breadValue, breadLastId, breadChanges, fileVisible, backLibrary, isFavorite, selectedFileId } = storeToRefs(appStore);
   const route = useRoute();
 
   // 使用props接收参数
@@ -279,12 +288,37 @@
     settingTitle.value = item.type == "folder" ? "文件夹" : "文档";
     settingRef.value.showDrawer(item);
   };
+
+  const currentType = ref(""); // 新增类型标识
   // 移动弹窗
   const moveHandle = (item, index) => {
     console.log(item);
     currentId.value = item.id_;
+    currentType.value = item.type; // 保存类型（folder/file）
     popoverVisible.value[index] = false;
     treeSelectRef.value.handleVisible("文档移动");
+  };
+  // 文件下载
+  const downloadFile = async (item, index) => {
+    popoverVisible.value[index] = false;
+    if (item.type === "folder") {
+      message.error("文件夹不支持下载");
+      return;
+    }
+
+    const formData = {
+      sf: "1",
+      code: item.file_id,
+    };
+    const response = await postDownloadFile(qs.stringify(formData));
+
+    console.log("接口请求成功:", response);
+    if (response.data.result) {
+      message.success("操作成功");
+      window.location.href = "https://oa.scnjwh.com/luqiao//jxload/view.pdf?code=" + response.data.message; // 触发文件下载
+    } else {
+      message.error("下载失败");
+    }
   };
   // 打开删除提示
   const showDeleteConfirm = (item, index) => {
@@ -320,6 +354,8 @@
     if (response.data.obj.error == "") {
       message.success("操作成功");
       fetchLibraryTree(selectedChildren.value);
+      // 关闭文件详情页
+      fileVisible.value = false;
     } else {
       message.error(response.data.obj.error);
     }
@@ -338,49 +374,55 @@
     console.log("接口请求成功:", response);
     if (response.data.obj.error == "") {
       message.success(response.data.msg);
-      fetchLibraryTree(selectedKeys.value);
+      fetchLibraryTree(selectedChildren.value);
       // 更新文库基本信息 KB
       callChildMethod();
+
+      fileVisible.value = false;
     } else {
       message.error(response.data.obj.error);
     }
   };
 
-  // 添加收藏
-  const collectHandleOk = async (item, index) => {
-    console.log("item", item);
-    popoverVisible.value[index] = false;
+  // // 添加收藏
+  // const collectHandleOk = async (item, index) => {
+  //   console.log("item", item);
+  //   popoverVisible.value[index] = false;
 
-    const formData = {
-      type: "add",
-      favorite_id: item.id_,
-    };
-    const response = await postcollectapi(qs.stringify(formData));
-    if (response.data.obj.error == "") {
-      console.log("接口请求成功:", response);
-      message.success(response.data.msg);
-      fetchLibraryTree(item.pid);
-    } else {
-      message.error(response.data.obj.error);
-    }
-  };
-  // 取消收藏
-  const folderDelete = async (item, index) => {
-    popoverVisible.value[index] = false;
-    console.log(item);
-    const formData = {
-      type: "delete",
-      id_: item.is_favorite,
-    };
-    const response = await postcollectapi(qs.stringify(formData));
+  //   const formData = {
+  //     type: "add",
+  //     favorite_id: item.id_,
+  //   };
+  //   const response = await postcollectapi(qs.stringify(formData));
+  //   if (response.data.obj.error == "") {
+  //     console.log("接口请求成功:", response);
+  //     message.success(response.data.msg);
+  //     fetchLibraryTree(item.pid);
+  //   } else {
+  //     message.error(response.data.obj.error);
+  //   }
+  // };
+  // // 取消收藏
+  // const folderDelete = async (item, index) => {
+  //   popoverVisible.value[index] = false;
+  //   console.log(item);
+  //   const formData = {
+  //     type: "delete",
+  //     id_: item.is_favorite,
+  //   };
+  //   const response = await postcollectapi(qs.stringify(formData));
 
-    if (response.data.obj.error == "取消收藏成功") {
-      console.log("接口请求成功:", response);
-      message.success(response.data.msg);
-      fetchLibraryTree(item.pid);
-    } else {
-      message.error(response.data.obj.error);
-    }
+  //   if (response.data.obj.error == "取消收藏成功") {
+  //     console.log("接口请求成功:", response);
+  //     message.success(response.data.msg);
+  //     fetchLibraryTree(item.pid);
+  //   } else {
+  //     message.error(response.data.obj.error);
+  //   }
+  // };
+  const collectHand = (item, index) => {
+    popoverVisible.value[index] = false;
+    appStore.toggleFavorite(item);
   };
   // 点击下一级
   const fileHandle = (item) => {
@@ -406,6 +448,8 @@
       menuIndex.value = item.id_;
       // 是否收藏
       isFavorite.value = item.is_favorite;
+      // 当前选中 文件id
+      selectedFileId.value = item.file_id;
     }
   };
 
@@ -494,22 +538,44 @@
     // 获取当前点击的路径
     fetchLibraryTree(breadLastId.value); // 精准刷新当前目录
   });
+  // 收藏
+  watch(
+    () => appStore.currentFavoriteId,
+    (newId) => {
+      if (newId) {
+        fetchLibraryTree(selectedChildren.value); // 重新加载当前目录
+      }
+    }
+  );
 
   // 处理子组件 treeSelect 传来的更新
   const handleSelectSuccess = async (selectValue) => {
+    // 根据类型选择接口
+    const api = currentType.value === "folder" ? postlibraryapi : postFileapi;
+
     // 获取到移动目标的 pid, 处理逻辑
     const formData = {
       type: "move",
-      pid: selectValue,
       id_: currentId.value,
     };
+
+    // 文档需要额外参数
+    if (currentType.value === "file") {
+      formData.classification_id = selectValue; // 文档接口可能需要不同字段名
+    } else {
+      formData.pid = selectValue;
+    }
+    console.log("A~~~~~~~~", currentType.value);
+    console.log("F~~~~~~~~", formData);
+
     try {
-      const response = await postlibraryapi(qs.stringify(formData));
+      const response = await api(qs.stringify(formData));
 
       if (response.data.code == 1) {
         message.success("移动成功");
         fetchLibraryTree(selectedChildren.value);
         console.log("接口请求成功:", response);
+        fileVisible.value = false;
       }
     } catch (error) {
       message.success(response.data.obj.error);

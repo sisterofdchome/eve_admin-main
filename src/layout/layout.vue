@@ -52,7 +52,7 @@
         <MenuUnfoldOutlined v-if="sideCollapsed" class="trigger" @click="appAction.changeCollapsed" />
         <MenuFoldOutlined v-else class="trigger" @click="appAction.changeCollapsed" />
         <Header @updateSuccess="handleUpdateSuccess" :value="selectedValue"></Header>
-        <a-switch size="small" :checked="theme === 'dark'" checked-children="Dark" un-checked-children="Light" @change="appAction.changeTheme" class="themeSwitchMenu" />
+        <!-- <a-switch size="small" :checked="theme === 'dark'" checked-children="Dark" un-checked-children="Light" @change="appAction.changeTheme" class="themeSwitchMenu" /> -->
       </a-layout-header>
       <!-- 右侧header结束 -->
       <!-- 右侧页面主体开始 -->

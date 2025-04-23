@@ -44,14 +44,15 @@
 
         const formData = {
           type: "update",
-          file_name: LibraryForm.libraryName,
           id_: LibraryForm.id_,
         };
         let response;
         if (title.value == "修改文件夹") {
+          formData.classification_name = LibraryForm.libraryName;
           // 文件夹更新名称
           response = await postlibraryapi(qs.stringify(formData));
         } else {
+          formData.file_name = LibraryForm.libraryName;
           // 文档更新名称
           response = await postFileapi(qs.stringify(formData)); // 调用接口
         }

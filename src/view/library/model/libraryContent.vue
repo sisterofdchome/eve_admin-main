@@ -99,7 +99,7 @@
 
   const appStore = useAppStore();
   // 引入appStore中的属性
-  const { selectedChildren, shouldRefreshLeftTree } = storeToRefs(appStore);
+  const { selectedKeys, selectedChildren, shouldRefreshLeftTree } = storeToRefs(appStore);
 
   const props = defineProps({
     id: {
@@ -176,6 +176,17 @@
 
     return sizeStr;
   };
+
+  // 处理子组件editor传来的更新
+  const handleUpdateSuccess = (updatedItem) => {
+    // const index = fileList.value.findIndex((item) => item.id_ === updatedItem.id_);
+    // if (index !== -1) {
+    //   fileList.value[index].name = updatedItem.name; // 更新名称
+    // }
+    // 刷新左侧 文件夹树
+    getLibraryImformation(props.id);
+  };
+
   // 监听路由参数变化
   watch(
     () => props.id,

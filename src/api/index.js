@@ -30,3 +30,26 @@ export const postFileapi = (data) => postapi("/supervise/reportInputController?c
 */
 
 export const postFileUpload = (data) => postapi("/system/file/fileUpload?code=&biz_type=CLOUD_DISK", data, {});
+
+
+/*
+* 文件下载
+*
+*/
+
+export const postDownloadFile  = (data) => postapi("/jxload/bulid", data, {});
+
+/*
+* 部门公司列表
+*
+*/
+
+export const postTreeDataByDemid  = (data) => postapi("/org/org/getTreeDataByDemid", data, {});
+/*
+* 部门公司列表
+*
+*/
+
+export const postUserListJson  = (data) => postapi("/org/user/listJson", data, {});
+
+
