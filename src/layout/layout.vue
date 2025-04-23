@@ -209,6 +209,7 @@
   ]);
 
   onMounted(() => {
+/*
     setTimeout(() => {
       router.push({
         // path: "/index", // 直接使用配置的 url
@@ -216,6 +217,7 @@
       });
       leftLibraryList();
     }, 500);
+ */
   });
 
   // 获取文库列表

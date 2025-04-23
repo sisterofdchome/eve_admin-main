@@ -8,6 +8,11 @@ const router = createRouter({
   history:createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('../view/login.vue')
+    },
+    {
       path: '',
       name: 'basic',
       component: () => import('@/layout/Layout.vue'),
@@ -32,11 +37,7 @@ const router = createRouter({
         },
       ]
     },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/view/login.vue')
-    },
+
   ]
 })
 

@@ -12,6 +12,7 @@
     "@ant-design/icons-vue": "^7.0.1",
     "ant-design-vue": "^4.2.3",
     "axios": "^1.8.4",
+    "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
     "pinia": "^2.2.2",
     "pinia-plugin-persistedstate": "^3.2.1",
