@@ -26,15 +26,26 @@ export default defineConfig({
 
   //下面是配置代理的所有内容
   //这里用server,和vue之前配置的有所不同
+  // server: {
+  //   // host: '192.168.88.249', // 允许局域网访问
+  //   // port: 5173,       // 确保端口正确
+  //   proxy: {
+  //     // 新增 /luqiao 代理配置
+  //     "/luqiao": {
+  //       target: "https://oa.scnjwh.com", // 后端基础地址
+  //       changeOrigin: true, // 开启跨域
+  //     },
+  //   },
+  // },
+
   server: {
-    // host: '192.168.88.249', // 允许局域网访问
-    // port: 5173,       // 确保端口正确
+    port: 5173, // 可省略
     proxy: {
-      // 新增 /luqiao 代理配置
-      "/luqiao": {
-        target: "https://oa.scnjwh.com", // 后端基础地址
-        changeOrigin: true, // 开启跨域
+      '/luqiao': {
+        target: 'http://localhost:9015', // 你的后端服务地址
+        changeOrigin: true,
       },
     },
-  },
+  }
+
 });

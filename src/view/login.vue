@@ -1,10 +1,9 @@
 <template>
   <h1>login view</h1>
-
+  <input v-if="validCode" v-model="user.randCode" placeholder="验证码"/>
   <span class="ax-form-img"><img :src="randCodeImage" @click="reloadRandCodeImage"/></span>
 
-  <button :disabled="loading" @click="submitLogin">
-    <span v-if="loading" class="fa fa-spinner fa-spin"></span>
+  <button @click="submitLogin">
     登录
   </button>
 </template>
@@ -17,48 +16,65 @@ import CryptoJS from "crypto-js";
 import axios from "axios";
 import {postapi} from "../utils/http";
 import {baseURL} from "../utils/http";
-import { Modal, message } from "ant-design-vue";
+import {Modal, message} from "ant-design-vue";
+import {useRouter} from "vue-router";
 
 export default defineComponent({
   name: 'LoginForm',
   setup() {
     const user = reactive({
-      username: 'admin',
-      password: 'WHkj@2008.com',
-      rememberMe: 0,
-      randCode: ''
+      account: "admin",
+      password: "WHkj@2008.com",
+      randCode: "",
+      rememberMe: 0
     })
 
     const ks = ref<{ k: string, iv: string } | null>(null)
-    const validCode = ref(false)
-    const loading = ref(false)
+    const validCode = ref(true)
     const randCodeImage = ref('')
     const message = ref('')
     const rememberMeChecked = ref(false)
+    const router = useRouter();
 
-
-// 验证码刷新函数
     const reloadRandCodeImage = () => {
-      randCodeImage.value = baseURL+`captcha?${new Date().getTime()}`
-      console.log(randCodeImage.value)
+      // 加时间戳防止缓存
+      randCodeImage.value = baseURL + `randCodeImage?t=${Date.now()}`
+      console.log("刷新验证码地址:", randCodeImage.value)
     }
+
+
+    const getKs = async () => {
+      //http://localhost:9015/luqiao/supervise/login.v
+      try {
+        const response = await axios.post(baseURL + 'login.v')
+        if (response.data) {
+          const decoded = atob(response.data) // Base64 解码
+          ks.value = JSON.parse(decoded)      // 赋值给 ks.value
+        } else {
+          ks.value = null
+        }
+      } catch (error) {
+        console.error('获取 ks 失败:', error)
+        ks.value = null
+      }
+    }
+
+
     reloadRandCodeImage()
 
-// 可替换为其他刷新逻辑
-    const getinfo = () => {
-      // 获取额外登录信息的函数，比如用户安全级别、验证码模式等
-    }
 
-// 登录提交函数
     const submitLogin = async () => {
-      if (loading.value) return
-      loading.value = true
       user.rememberMe = rememberMeChecked.value ? 1 : 0
 
-      // 有验证码时先处理
       if (validCode.value) {
         user.randCode = user.randCode.trim()
+        if (!user.randCode) {
+          console.log("请输入验证码")
+          return
+        }
       }
+
+      await getKs()
 
       let param: any = {}
       if (ks.value && ks.value.k && ks.value.iv) {
@@ -74,34 +90,64 @@ export default defineComponent({
         param = {...user}
       }
 
+      const formData = new FormData()
+      for (const key in param) {
+        formData.append(key, param[key])
+      }
+
+      console.log("最终提交的 formData:")
+      for (let [key, val] of formData.entries()) {
+        console.log(key, val)
+      }
+
       try {
-        const {data} = await postapi('/login/valid', param)
-        loading.value = false
+        const response = await axios.post(baseURL + 'login/valid?randCode=' + user.randCode, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          withCredentials: true
+        })
+
+        const data = response.data
 
         if (data.success) {
-          localStorage.setItem('token', data.token)
-          window.location.href = '/main/home'
-        } else {
-          if (data.message.includes('passwordExpired')) {
-            const expiredMessage = data.message.replace('passwordExpired-', '')
-            alert(`密码过期：${expiredMessage}`)
-            window.location.href = `/main/passwordExpired?userId=${data.username}`
-          } else {
-            reloadRandCodeImage()
-            getinfo()
-            user.randCode = ''
-            console.log(data.message)
+          // 登录成功处理
+          localStorage.setItem("token", data.token)
+
+
+          const item = {
+            title: "全部文库",
+            key: "-12",
+            icon: "svg-wxz",
+            url: "/allLibrary/全部文库",
+            isExpand: false,
+            children: [],
           }
+
+          router.push({
+            path: item.url, // 直接使用配置的 url
+            query: {
+              id: item.key || "0", // 防止 key 为 undefined
+              title: item.title,
+            },
+          });
+
+
+        } else {
+          console.error(data.message || "登录失败")
+          // ❗ 清空验证码并刷新
+          user.randCode = ''
+          reloadRandCodeImage()
         }
       } catch (err) {
-        loading.value = false
-        console.log('请求失败，请稍后再试。')
+        console.error("登录接口异常，请稍后重试")
+        console.error("登录异常:", err)
       }
     }
 
+
     return {
       user,
-      loading,
       validCode,
       rememberMeChecked,
       randCodeImage,
