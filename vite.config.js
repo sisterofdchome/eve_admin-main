@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from "node:url";
 import vue from "@vitejs/plugin-vue";
 import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
 import path from "path";
+import fs from 'fs';
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "./",
@@ -38,11 +39,18 @@ export default defineConfig({
   //   },
   // },
 
+  // http://192.168.88.245/
   server: {
     port: 5173, // 可省略
+    host: '192.168.88.245',
+    https: {
+      // 主要是下面两行的配置文件，不要忘记引入 fs 和 path 两个对象
+      cert: fs.readFileSync(path.join(__dirname, 'src/ssl/cert.crt')),
+      key: fs.readFileSync(path.join(__dirname, 'src/ssl/cert.key'))
+    },
     proxy: {
       '/luqiao': {
-        target: 'http://localhost:9015', // 你的后端服务地址
+        target: 'http://192.168.88.245:9015', // 你的后端服务地址
         changeOrigin: true,
       },
     },

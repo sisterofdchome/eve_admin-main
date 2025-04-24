@@ -1,7 +1,9 @@
 <template>
   <h1>login view</h1>
   <input v-if="validCode" v-model="user.randCode" placeholder="验证码"/>
-  <span class="ax-form-img"><img :src="randCodeImage" @click="reloadRandCodeImage"/></span>
+  <span class="ax-form-img">
+  <img :src="randCodeImage" @click="reloadRandCodeImage"/>
+</span>
 
   <button @click="submitLogin">
     登录
@@ -36,10 +38,19 @@ export default defineComponent({
     const rememberMeChecked = ref(false)
     const router = useRouter();
 
-    const reloadRandCodeImage = () => {
-      // 加时间戳防止缓存
-      randCodeImage.value = baseURL + `randCodeImage?t=${Date.now()}`
-      console.log("刷新验证码地址:", randCodeImage.value)
+    const reloadRandCodeImage = async () => {
+      try {
+        const response = await axios.get(baseURL + `randCodeImage?t=${Date.now()}`, {
+          responseType: 'blob',
+          withCredentials: true, // 加上这个以确保发送 cookie
+        })
+
+        const imageBlob = response.data
+        randCodeImage.value = URL.createObjectURL(imageBlob)
+        console.log("刷新验证码地址:", randCodeImage.value)
+      } catch (err) {
+        console.error("验证码加载失败", err)
+      }
     }
 
 
