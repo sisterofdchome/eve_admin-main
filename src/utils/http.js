@@ -1,7 +1,7 @@
 import axios from "axios";
 import {message} from "ant-design-vue";
 
-export const baseURL = "http://192.168.88.245:9015/luqiao/supervise/"
+export const baseURL = "http://localhost:9015/luqiao/supervise/"
 
 //创建一个新的请求实例instance,instance.的用法和axios.的用法一致，可以使用instance({})、instance.get（）、instance.post()
 const instace = axios.create({

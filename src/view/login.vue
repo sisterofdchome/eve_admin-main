@@ -1,5 +1,9 @@
 <template>
   <h1>login view</h1>
+
+  <input v-model="user.account" placeholder="账号" />
+  <input v-model="user.password" placeholder="密码" />
+
   <input v-if="validCode" v-model="user.randCode" placeholder="验证码" />
   <span class="ax-form-img"><img :src="randCodeImage" @click="reloadRandCodeImage" /></span>
 
