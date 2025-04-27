@@ -177,6 +177,7 @@
           </template>
         </a-empty>
       </div>
+      <!-- 文库页 -->
       <div v-else-if="!fileVisible && backLibrary" style="width: 100%">
         <LibraryContent ref="libraryContentRef" :id="id"></LibraryContent>
       </div>

@@ -10,6 +10,7 @@ const instace = axios.create({
     baseURL: baseURL,
     timeout: 5000, //超时时间
     withCredentials: true, // 保证请求发送 cookie
+    sameSite: "none",
 });
 
 function getToken() {
