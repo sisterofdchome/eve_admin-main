@@ -1,5 +1,5 @@
 <template>
-  <a-modal v-model:visible="personVisible" title="人员选择" centered @ok="personVisible = false" width="730px">
+  <a-modal v-model:visible="personVisible" title="人员选择" centered @ok="handleOk" width="730px">
     <div class="user-info-list">
       <div class="user-info-left">
         <div class="user-info-title">
@@ -21,13 +21,13 @@
               <template v-else>
                 <CheckSquareFilled style="color: #1677ff; font-size: 18px" />
               </template>
-              <img src="https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png" />
+              <img src="../assets/libary/userHead.png" />
               <span class="name">{{ item.fullname }}</span>
             </div>
           </div>
           <div class="content no-user-content" v-if="userTabActive == 1">
-            <div class="check-box-item" v-for="item in roleList" @click="selHandle(item, 'role')">
-              <template v-if="!isChecked(item.id, 'role')">
+            <div class="check-box-item" v-for="item in deptList" @click="selHandle(item, 'dept')">
+              <template v-if="!isChecked(item.id, 'dept')">
                 <BorderOutlined class="icon" />
               </template>
               <template v-else>
@@ -37,7 +37,7 @@
             </div>
           </div>
           <div class="content no-user-content" v-if="userTabActive == 2">
-            <div class="check-box-item" v-for="item in deptList" @click="selHandle(item, 'role')">
+            <div class="check-box-item" v-for="item in roleList" @click="selHandle(item, 'role')">
               <template v-if="!isChecked(item.id, 'role')">
                 <BorderOutlined class="icon" />
               </template>
@@ -60,7 +60,7 @@
         <div class="user-right-content">
           <div class="cehck-item" v-for="item in selectUserList">
             <div class="check-item-info">
-              <img src="https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png" v-if="item.type == 'user'" />
+              <img src="../assets/libary/userHead.png" v-if="item.type == 'user'" />
               <span v-else-if="item.type == 'role'">（角色）</span>
               <span :title="item.name">{{ item.name }}</span>
             </div>
@@ -84,22 +84,22 @@
       name: "人员",
       id: 0,
     },
-    {
-      name: "角色",
-      id: 1,
-    },
+    // {
+    //   name: "角色",
+    //   id: 1,
+    // },
     {
       name: "部门",
       id: 2,
     },
-    {
-      name: "岗位",
-      id: 3,
-    },
-    {
-      name: "群组",
-      id: 4,
-    },
+    // {
+    //   name: "岗位",
+    //   id: 3,
+    // },
+    // {
+    //   name: "群组",
+    //   id: 4,
+    // },
   ]);
   const userList = ref([
     {
@@ -236,12 +236,16 @@
     const data = {
       page: 1,
       rows: 30,
-      "Q^fullname_^SL": "邓",
+      // "Q^fullname_^SL": "邓",
     };
     let res = await postUserListJson(qs.stringify(data));
     // demid: id
     console.log(res);
-    userList.value = res.data.rows;
+    // userList.value = res.data.rows;
+    userList.value = res.data.rows.map((item) => ({
+      ...item,
+      name: item.fullname, // 将 fullname 赋值给 name
+    }));
     console.log(userList.value);
   };
   // 获取公司选择
@@ -281,6 +285,13 @@
   };
   const showPersonVisible = () => {
     personVisible.value = true;
+  };
+  // 新增事件发射
+  const emit = defineEmits(["submitUsers"]);
+
+  const handleOk = () => {
+    personVisible.value = false;
+    emit("submitUsers", selectUserList.value); // 发射选中数据
   };
 
   defineExpose({

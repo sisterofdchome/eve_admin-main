@@ -66,7 +66,14 @@
                 <div class="add" @click="addPerson()"><PlusOutlined />添加成员</div>
                 <div class="del"><DeleteOutlined />删除权限组</div>
               </div>
-              <div class="persion-list-box"></div>
+              <!-- <div class="persion-list-box"></div> -->
+              <div class="persion-list-box">
+                <div v-for="user in selectedUsers" :key="user.id" class="user-item">
+                  <img v-if="user.type === 'user'" src="../../../assets/libary/userHead.png" />
+                  <span>{{ user.name }}</span>
+                  <!-- <CloseCircleOutlined @click="removeUser(user)" /> -->
+                </div>
+              </div>
               <div class="checked-auth-list">
                 <div>
                   <a-checkbox v-model:checked="checkAll" :indeterminate="indeterminate" @change="onCheckAllChange"> 全选 </a-checkbox>
@@ -85,27 +92,30 @@
           </div>
         </div>
         <div class="button-box">
-          <a-button type="primary">保存设置</a-button>
+          <a-button type="primary" @click="clickPermission">保存设置</a-button>
           <a-button style="margin-left: 12px">取消</a-button>
         </div>
       </div>
     </div>
   </a-drawer>
-  <PersonnelSelection ref="personRef"></PersonnelSelection>
+  <PersonnelSelection ref="personRef" @submit-users="handleUserSubmit"></PersonnelSelection>
 </template>
 
 <script setup>
   import PersonnelSelection from "../../../components/personnelSelection.vue";
   import { ref, reactive, watch, onMounted } from "vue";
-  import { FileTextOutlined, FileSearchOutlined, BellOutlined, InteractionOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
+  import { FileTextOutlined, FileSearchOutlined, BellOutlined, InteractionOutlined, PlusOutlined, DeleteOutlined, CloseCircleOutlined } from "@ant-design/icons-vue";
   import { message } from "ant-design-vue";
 
   // 引入appStore
   import { useAppStore } from "../../../store/module/app";
   const appStore = useAppStore();
 
-  import { postlibraryapi, postFileapi } from "../../../api/index.js";
+  import { postlibraryapi, postFileapi, postPermissionApi } from "../../../api/index.js";
+  // 引入appStore中的属性
   import qs from "qs";
+  import { storeToRefs } from "pinia";
+  const { selectedKeys, selectedChildren } = storeToRefs(appStore);
 
   // 接收父组件传递的 props
   const props = defineProps({
@@ -140,7 +150,20 @@
     description: "",
   });
 
-  onMounted(() => {});
+  onMounted(() => {
+    // 获取权限数据
+    getPermission();
+  });
+  // 新增响应式数据
+  const selectedUsers = ref([]);
+  // 新增处理方法
+  const handleUserSubmit = (users) => {
+    selectedUsers.value = users;
+  };
+
+  const removeUser = (userToRemove) => {
+    selectedUsers.value = selectedUsers.value.filter((user) => !(user.id === userToRemove.id && user.type === userToRemove.type));
+  };
 
   const onFinish = (values) => {
     console.log("Success:", values);
@@ -249,6 +272,25 @@
     settingNav.value[1].name = settingTitle.value + "权限";
     id_.value = item.id_;
   };
+
+  // 获取权限数据
+  const getPermission = async () => {
+    const formData = {
+      type: "permissionList",
+    };
+    const response = await postPermissionApi(qs.stringify(formData));
+
+    if (response.data.success) {
+      console.log(response);
+      // settingOptin.value = response.data.obj.data;
+      settingOptin.value = response.data.obj.data.slice(0, 4).map((item) => ({
+        ...item,
+        name: item.label,
+        value: item.number,
+      }));
+      console.log(settingOptin.value);
+    }
+  };
   const changeMenu = (index) => {
     indexNav.value = index;
   };
@@ -284,6 +326,29 @@
     } else {
       message.error("更新失败");
     }
+  };
+  const clickPermission = async () => {
+    console.log("checkedList.value:", checkedList.value);
+    const userData = selectedUsers.value.map((item) => item.id).join(",");
+    const checkedData = checkedList.value.join(",");
+    const formData = {
+      type: "add",
+      classification_tree_id: selectedChildren.value,
+      users: userData,
+      user_permission: checkedData,
+    };
+    console.log(formData);
+
+    // const response = await postPermissionApi(qs.stringify(formData));
+
+    // if (response.data.code == 1) {
+    //   console.log("接口请求成功:", response);
+    //   message.success("权限设置成功");
+
+    //   visible.value = false;
+    // } else {
+    //   message.error("更新失败");
+    // }
   };
 
   watch(
@@ -442,5 +507,19 @@
     margin-top: 16px;
     grid-column-gap: 16px;
     grid-row-gap: 16px;
+  }
+  /* 添加样式 */
+  .user-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 4px;
+    background: #f0f2f5;
+    border-radius: 4px;
+  }
+  .user-item img {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
   }
 </style>

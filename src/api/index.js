@@ -46,10 +46,17 @@ export const postDownloadFile  = (data) => postapi("/jxload/bulid", data, {});
 
 export const postTreeDataByDemid  = (data) => postapi("/org/org/getTreeDataByDemid", data, {});
 /*
-* 部门公司列表
+* 人员列表
 *
 */
 
 export const postUserListJson  = (data) => postapi("/org/user/listJson", data, {});
+
+/*
+* 资料库文件夹权限配置
+*
+*/
+
+export const postPermissionApi  = (data) => postapi("/reportInputController?common&id=1c534328a32648e2b87b1b7fe638f674", data, {});
 
 
