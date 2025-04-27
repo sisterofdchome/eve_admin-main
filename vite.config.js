@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from "node:url";
 import vue from "@vitejs/plugin-vue";
 import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
 import path from "path";
+import fs from 'fs';
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "./",
@@ -26,7 +27,7 @@ export default defineConfig({
 
   // 下面是配置代理的所有内容
   // 这里用server,和vue之前配置的有所不同
-  server: {
+  // server: {
     // host: 'localhost', // 允许局域网访问
     // port: 5173,       // 确保端口正确
     // proxy: {
@@ -36,7 +37,7 @@ export default defineConfig({
     //     changeOrigin: true, // 开启跨域
     //   },
     // },
-  },
+  // },
 
 
   // proxy: {
@@ -47,14 +48,14 @@ export default defineConfig({
   //   },
   // },
 
-  // server: {
-  //   port: 5173, // 可省略
-  //   proxy: {
-  //     '/luqiao': {
-  //       target: 'http://192.168.88.245:9015/luqiao/supervise/', // 你的后端服务地址
-  //       changeOrigin: true,
-  //     },
-  //   },
-  // }
+  server: {
+    port: 5173, // 可省略
+    proxy: {
+      '/luqiao': {
+        target: 'http://localhost:9015/luqiao/supervise/', // 你的后端服务地址
+        changeOrigin: true,
+      },
+    },
+  }
 
 });
