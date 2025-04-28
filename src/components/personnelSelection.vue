@@ -283,15 +283,19 @@
   const closePersonVisible = () => {
     personVisible.value = false;
   };
-  const showPersonVisible = () => {
+  const showPersonVisible = (index, userList) => {
     personVisible.value = true;
+    currentIndex.value = index;
+    selectUserList.value = userList;
   };
   // 新增事件发射
   const emit = defineEmits(["submitUsers"]);
 
+  const currentIndex = ref("");
+
   const handleOk = () => {
     personVisible.value = false;
-    emit("submitUsers", selectUserList.value); // 发射选中数据
+    emit("submitUsers", selectUserList.value, currentIndex.value); // 发射选中数据
   };
 
   defineExpose({

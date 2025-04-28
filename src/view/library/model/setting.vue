@@ -59,43 +59,61 @@
           <div class="auth-box">
             <div class="item-title">
               <span class="title">成员权限</span>
-              <span class="add-auth"> <PlusOutlined />添加权限组 </span>
+              <span class="add-auth" @click="showAddGroupModal"> <PlusOutlined />添加权限组 </span>
             </div>
-            <div class="permission-content-item">
+
+            <div class="permission-content-item" v-for="(group, index) in permissionGroups" :key="index">
+              <!-- <div class="group-header">
+                <a-input v-if="group.editing" v-model:value="group.tempName" @pressEnter="saveGroupName(index)" />
+                <span v-else class="group-title" @dblclick="editGroupName(index)">{{ group.name }}</span>
+                <span class="group-actions">
+                  <a-button type="text" @click="editGroupName(index)" v-if="!group.editing">
+                    <EditOutlined />
+                  </a-button>
+                  <a-button type="text" danger @click="showDeleteConfirm(index)">
+                    <DeleteOutlined />
+                  </a-button>
+                </span>
+              </div> -->
+
               <div class="add-or-del-box">
-                <div class="add" @click="addPerson()"><PlusOutlined />添加成员</div>
-                <div class="del"><DeleteOutlined />删除权限组</div>
+                <div class="add" @click="addPerson(index)"><PlusOutlined />添加成员</div>
+                <div class="del" @click="deletePermissionGroup(index)"><DeleteOutlined />删除权限组</div>
               </div>
-              <!-- <div class="persion-list-box"></div> -->
+
               <div class="persion-list-box">
-                <div v-for="user in selectedUsers" :key="user.id" class="user-item">
+                <div v-for="user in group.members" :key="user.id" class="user-item">
                   <img v-if="user.type === 'user'" src="../../../assets/libary/userHead.png" />
                   <span>{{ user.name }}</span>
-                  <!-- <CloseCircleOutlined @click="removeUser(user)" /> -->
+                  <!-- <CloseCircleOutlined @click="removeUser(index, user.id)" /> -->
                 </div>
               </div>
+
               <div class="checked-auth-list">
                 <div>
-                  <a-checkbox v-model:checked="checkAll" :indeterminate="indeterminate" @change="onCheckAllChange"> 全选 </a-checkbox>
+                  <a-checkbox :checked="isGroupAllChecked(index)" :indeterminate="isGroupIndeterminate(index)" @change="(e) => onGroupCheckAllChange(e, index)"> 全选 </a-checkbox>
                 </div>
-                <a-checkbox-group v-model:value="checkedList">
-                  <template #default>
-                    <a-row>
-                      <a-col :span="8" v-for="option in settingOptin">
-                        <a-checkbox :value="option.value">{{ option.name }}</a-checkbox>
-                      </a-col>
-                    </a-row>
-                  </template>
+                <a-checkbox-group v-model:value="group.permissions">
+                  <a-row>
+                    <a-col :span="8" v-for="option in settingOptin">
+                      <a-checkbox :value="option.value">{{ option.name }}</a-checkbox>
+                    </a-col>
+                  </a-row>
                 </a-checkbox-group>
               </div>
             </div>
           </div>
         </div>
         <div class="button-box">
-          <a-button type="primary" @click="clickPermission">保存设置</a-button>
-          <a-button style="margin-left: 12px">取消</a-button>
+          <a-button type="primary" @click="saveAllPermissions">保存设置</a-button>
+          <a-button style="margin-left: 12px" @click="visible = false">取消</a-button>
         </div>
       </div>
+
+      <!-- 添加权限组模态框 -->
+      <a-modal v-model:visible="addGroupModalVisible" title="添加权限组" @ok="handleAddGroup" @cancel="addGroupModalVisible = false">
+        <a-input v-model:value="newGroupName" placeholder="请输入权限组名称" />
+      </a-modal>
     </div>
   </a-drawer>
   <PersonnelSelection ref="personRef" @submit-users="handleUserSubmit"></PersonnelSelection>
@@ -104,8 +122,8 @@
 <script setup>
   import PersonnelSelection from "../../../components/personnelSelection.vue";
   import { ref, reactive, watch, onMounted } from "vue";
-  import { FileTextOutlined, FileSearchOutlined, BellOutlined, InteractionOutlined, PlusOutlined, DeleteOutlined, CloseCircleOutlined } from "@ant-design/icons-vue";
-  import { message } from "ant-design-vue";
+  import { FileTextOutlined, FileSearchOutlined, BellOutlined, InteractionOutlined, PlusOutlined, DeleteOutlined, CloseCircleOutlined, EditOutlined } from "@ant-design/icons-vue";
+  import { message, Modal } from "ant-design-vue";
 
   // 引入appStore
   import { useAppStore } from "../../../store/module/app";
@@ -157,13 +175,15 @@
   // 新增响应式数据
   const selectedUsers = ref([]);
   // 新增处理方法
-  const handleUserSubmit = (users) => {
+  const handleUserSubmit = (users, groupIndex) => {
     selectedUsers.value = users;
+    permissionGroups.value[groupIndex].members = selectedUsers.value;
+    console.log("selectedUsers", selectedUsers.value);
   };
 
-  const removeUser = (userToRemove) => {
-    selectedUsers.value = selectedUsers.value.filter((user) => !(user.id === userToRemove.id && user.type === userToRemove.type));
-  };
+  // const removeUser = (userToRemove) => {
+  //   selectedUsers.value = selectedUsers.value.filter((user) => !(user.id === userToRemove.id && user.type === userToRemove.type));
+  // };
 
   const onFinish = (values) => {
     console.log("Success:", values);
@@ -240,9 +260,9 @@
     checkedList.value = checkAll.value ? [1, 2, 3, 4] : [];
     indeterminate.value = false;
   };
-  const addPerson = () => {
-    personRef.value.showPersonVisible();
-  };
+  // const addPerson = () => {
+  //   personRef.value.showPersonVisible();
+  // };
   const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
   };
@@ -332,7 +352,7 @@
     const userData = selectedUsers.value.map((item) => item.id).join(",");
     const allOptions = settingOptin.value.map((item) => item.number); // 所有可能的选项
 
-    // 生成结果字符串 二进制
+    // 生成结果字符串
     const checkedDataTwo = allOptions.map((option) => (checkedList.value.includes(option) ? "1" : "0")).join("");
 
     const formData = {
@@ -343,16 +363,171 @@
     };
     console.log(formData);
 
-    const response = await postPermissionApi(qs.stringify(formData));
+    // const response = await postPermissionApi(qs.stringify(formData));
 
-    if (response.data.code == 1) {
-      console.log("接口请求成功:", response);
-      message.success("权限设置成功");
+    // if (response.data.code == 1) {
+    //   console.log("接口请求成功:", response);
+    //   message.success("权限设置成功");
 
-      visible.value = false;
-    } else {
-      message.error("更新失败");
+    //   visible.value = false;
+    // } else {
+    //   message.error("更新失败");
+    // }
+  };
+
+  // 权限组数据结构
+  const permissionGroups = ref([
+    {
+      // id: 1,
+      // name: "管理员组",
+      members: [],
+      permissions: [],
+      // editing: false,
+      // tempName: "",
+    },
+  ]);
+
+  // 添加权限组相关
+  const addGroupModalVisible = ref(false);
+  const newGroupName = ref("");
+
+  // 添加权限组
+  const showAddGroupModal = () => {
+    // newGroupName.value = "";
+    // addGroupModalVisible.value = true;
+
+    permissionGroups.value.push({
+      members: [],
+      permissions: [],
+    });
+  };
+
+  // 添加权限组名称弹出框
+  const handleAddGroup = () => {
+    if (!newGroupName.value.trim()) {
+      message.warning("请输入权限组名称");
+      return;
     }
+
+    const newId = permissionGroups.value.length > 0 ? Math.max(...permissionGroups.value.map((g) => g.id)) + 1 : 1;
+
+    permissionGroups.value.push({
+      id: newId,
+      name: newGroupName.value,
+      members: [],
+      permissions: [],
+      editing: false,
+      tempName: "",
+    });
+
+    message.success("权限组添加成功");
+    addGroupModalVisible.value = false;
+  };
+
+  // 编辑权限组名称
+  const editGroupName = (index) => {
+    permissionGroups.value[index].editing = true;
+    permissionGroups.value[index].tempName = permissionGroups.value[index].name;
+  };
+
+  const saveGroupName = (index) => {
+    if (!permissionGroups.value[index].tempName.trim()) {
+      message.warning("权限组名称不能为空");
+      return;
+    }
+    permissionGroups.value[index].name = permissionGroups.value[index].tempName;
+    permissionGroups.value[index].editing = false;
+  };
+
+  // 删除权限组
+  const showDeleteConfirm = (index) => {
+    Modal.confirm({
+      title: "确定要删除这个权限组吗?",
+      content: `即将删除权限组: ${permissionGroups.value[index].name}`,
+      okText: "确认删除",
+      okType: "danger",
+      cancelText: "取消",
+      onOk() {
+        permissionGroups.value.splice(index, 1);
+        message.success("权限组已删除");
+      },
+    });
+  };
+
+  // 成员管理
+  const addPerson = (groupIndex) => {
+    personRef.value.showPersonVisible(groupIndex, permissionGroups.value[groupIndex].members);
+  };
+  // 删除权限组
+  const deletePermissionGroup = (groupIndex) => {
+    // 直接从数组中移除
+    permissionGroups.value.splice(groupIndex, 1);
+  };
+
+  const removeUser = (groupIndex, userId) => {
+    const group = permissionGroups.value[groupIndex];
+    group.members = group.members.filter((u) => u.id !== userId);
+    message.info("成员已移除");
+  };
+
+  // 权限选择相关
+  const isGroupAllChecked = (groupIndex) => {
+    const group = permissionGroups.value[groupIndex];
+    return group.permissions.length === settingOptin.value.length;
+  };
+
+  const isGroupIndeterminate = (groupIndex) => {
+    const group = permissionGroups.value[groupIndex];
+    return group.permissions.length > 0 && group.permissions.length < settingOptin.value.length;
+  };
+
+  const onGroupCheckAllChange = (e, groupIndex) => {
+    permissionGroups.value[groupIndex].permissions = e.target.checked ? settingOptin.value.map((opt) => opt.value) : [];
+  };
+
+  // 保存所有权限设置
+  const saveAllPermissions = async () => {
+    console.log(permissionGroups.value);
+    const allOptions = settingOptin.value.map((item) => item.number); // 所有的选项
+
+    // 将人员数组和权限数组分别转换为字符串，通过，连接
+    const permissionsData = permissionGroups.value.map((group) => ({
+      users: group.members.map((obj) => obj.id).join(","),
+      user_permission: allOptions.map((option) => (group.permissions.includes(option) ? "1" : "0")).join(""), //转为2进制
+      type: "add",
+      classification_tree_id: selectedChildren.value,
+    }));
+
+    console.log(permissionsData);
+    // const res = await postPermissionApi(qs.stringify(permissionsData));
+    // 校验每一项的users和user_permission是否都存在且不为空
+    for (let i = 0; i < permissionsData.length; i++) {
+      if (!permissionsData[i].users) {
+        message.error("请选择人员");
+        return;
+      }
+      if (permissionsData[i].user_permission == "0000") {
+        message.error("请勾选权限");
+        return;
+      }
+    }
+
+    // 循环permissionsData，调用接口
+    // for (let i = 0; i < permissionsData.length; i++) {
+    //   const res = await postPermissionApi(qs.stringify(permissionsData[i]));
+    //   console.log(res);
+    // }
+
+    // const response = await postPermissionApi(qs.stringify(permissionsData));
+
+    // if (response.data.code == 1) {
+    //   console.log("接口请求成功:", response);
+    //   message.success("权限设置成功");
+
+    //   visible.value = false;
+    // } else {
+    //   message.error("更新失败");
+    // }
   };
 
   watch(
