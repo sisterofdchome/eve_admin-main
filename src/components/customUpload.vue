@@ -74,9 +74,8 @@
           .post(`/luqiao/system/file/fileUpload?code=&biz_type=CLOUD_DISK`, formData, {
             headers: {
               "Content-Type": "multipart/form-data",
-              // Authorization:
-              //   "Bearer " +
-              //   "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6Im1vYmlsZSIsIm1hbmFnZU9yZyI6IjEwMDAwMDE3NjY0NDMwIiwiZXhwIjoxNzQ0NzkwMjg2LCJpYXQiOjE3NDQ3NjUwODZ9.VemHV94mEA3SVoDoZuzi49534CnfuRTzOZw1-c1vDIhhU9xPImWbyfpu8RE8NPFiAQdOhjFSQaCJFLr93x_avg",
+              Authorization: "Bearer " + localStorage.getItem("token"),
+              // "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImF1ZCI6Im1vYmlsZSIsIm1hbmFnZU9yZyI6IjEwMDAwMDE3NjY0NDMwIiwiZXhwIjoxNzQ0NzkwMjg2LCJpYXQiOjE3NDQ3NjUwODZ9.VemHV94mEA3SVoDoZuzi49534CnfuRTzOZw1-c1vDIhhU9xPImWbyfpu8RE8NPFiAQdOhjFSQaCJFLr93x_avg",
             },
 
             onUploadProgress: (progressEvent) => {

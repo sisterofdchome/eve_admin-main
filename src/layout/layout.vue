@@ -171,7 +171,7 @@
       title: "我的文库",
       key: "-13",
       icon: "svg-wxz",
-      url: "/",
+      url: "/myLibrary/我的文库",
       isExpand: false,
       children: [
         // {

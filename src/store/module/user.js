@@ -50,7 +50,7 @@ const menu = [{
 		label: '我的文库',
 		key: '/myLibrary',
 		icon: 'FolderFilled',
-		url: "/",
+		// url: "/",
 		isExpand: false,
 		component: 'myLibrary',
 		children: [{

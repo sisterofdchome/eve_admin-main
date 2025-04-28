@@ -35,6 +35,12 @@ const router = createRouter({
           component: () => import('../view/all/allLibrary.vue'),
           props: true
         },
+        {
+          path: '/myLibrary/:title',
+          name: 'myLibrary',
+          component: () => import('../view/my/myLibrary.vue'),
+          props: true
+        },
       ]
     },
 
