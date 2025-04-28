@@ -203,6 +203,7 @@
           // selectedChildren.value = response.data.obj.data;
           if (title.value == "文库") {
             selectedKeys.value = response.data.obj.data;
+            selectedChildren.value = response.data.obj.data;
           }
           message.success(response.data.msg);
           // 触发事件，传递更新后的数据

@@ -237,7 +237,7 @@
 
   const settingTitle = ref("");
   const onCheckAllChange = (e) => {
-    checkedList.value = checkAll.value ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] : [];
+    checkedList.value = checkAll.value ? [1, 2, 3, 4] : [];
     indeterminate.value = false;
   };
   const addPerson = () => {
@@ -330,25 +330,29 @@
   const clickPermission = async () => {
     console.log("checkedList.value:", checkedList.value);
     const userData = selectedUsers.value.map((item) => item.id).join(",");
-    const checkedData = checkedList.value.join(",");
+    const allOptions = settingOptin.value.map((item) => item.number); // 所有可能的选项
+
+    // 生成结果字符串 二进制
+    const checkedDataTwo = allOptions.map((option) => (checkedList.value.includes(option) ? "1" : "0")).join("");
+
     const formData = {
       type: "add",
       classification_tree_id: selectedChildren.value,
       users: userData,
-      user_permission: checkedData,
+      user_permission: checkedDataTwo,
     };
     console.log(formData);
 
-    // const response = await postPermissionApi(qs.stringify(formData));
+    const response = await postPermissionApi(qs.stringify(formData));
 
-    // if (response.data.code == 1) {
-    //   console.log("接口请求成功:", response);
-    //   message.success("权限设置成功");
+    if (response.data.code == 1) {
+      console.log("接口请求成功:", response);
+      message.success("权限设置成功");
 
-    //   visible.value = false;
-    // } else {
-    //   message.error("更新失败");
-    // }
+      visible.value = false;
+    } else {
+      message.error("更新失败");
+    }
   };
 
   watch(
