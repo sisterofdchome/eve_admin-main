@@ -96,7 +96,7 @@
   const uploadVisible = ref(false);
 
   // 引入appStore中的属性
-  const { selectedKeys, selectedChildren } = storeToRefs(appStore);
+  const { selectedKeys, selectedChildren, breadValue } = storeToRefs(appStore);
   const selectFolderOrLibrary = ref(selectedChildren.value);
 
   // 接收父组件传递的 props
@@ -204,6 +204,9 @@
           if (title.value == "文库") {
             selectedKeys.value = response.data.obj.data;
             selectedChildren.value = response.data.obj.data;
+            // 更新面包屑
+            // breadValue.value[0] = { id: 0, name: first, url: `/allLibrary/${first}` };
+            breadValue.value[1] = { id: selectedKeys.value, name: response.data.obj.classification_name, url: "/library/" + selectedKeys.value };
           }
           message.success(response.data.msg);
           // 触发事件，传递更新后的数据
