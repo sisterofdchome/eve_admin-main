@@ -41,7 +41,6 @@
           const response = await axios.get(baseURL + `randCodeImage?t=${Date.now()}`, {
             responseType: "blob",
             withCredentials: true, // 加上这个以确保发送 cookie
-            sameSite: "none",
           });
 
           const imageBlob = response.data;
@@ -109,7 +108,6 @@
               "Content-Type": "multipart/form-data",
             },
             withCredentials: true,
-            sameSite: "none",
           });
 
           const data = response.data;
