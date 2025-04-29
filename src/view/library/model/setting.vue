@@ -298,6 +298,25 @@
     // formState.description = item.description;
     settingNav.value[1].name = settingTitle.value + "权限";
     id_.value = item.id_;
+
+    // 文库的权限具体信息
+    getPermissionGroup();
+  };
+
+  // 获取文库权限组信息
+  const getPermissionGroup = async () => {
+    const formData = {
+      type: "getWithTreeId",
+      classification_tree_id: id_.value,
+    };
+    const response = await postPermissionApi(qs.stringify(formData));
+
+    if (response.data.success) {
+      console.log(response);
+      console.log(response.data.obj.permissionMap);
+      // settingOptin.value = response.data.obj.permissionMap;
+      // console.log(settingOptin.value);
+    }
   };
 
   // 获取权限数据
