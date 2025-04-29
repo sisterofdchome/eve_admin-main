@@ -271,6 +271,13 @@
   const placement = ref("right");
   const onClose = () => {
     visible.value = false;
+    indexNav.value = 0;
+    permissionGroups.value = [
+      {
+        members: [],
+        permissions: [],
+      },
+    ];
   };
 
   const id_ = ref("");

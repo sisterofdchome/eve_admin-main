@@ -9,20 +9,20 @@
           </div></a-tab-pane
         >
         <a-tab-pane key="2" tab="动态" force-render>
-          <div class="dyn-item">
+          <div class="dyn-item" v-for="item in logList" :key="item.id_">
             <div class="oper-user">
               <div class="name-info">
                 <img src="../../../assets/libary/personnel.png" />
-                <span class="name" title="系统管理员">系统管理员</span>
-                <span class="oper-name">删除</span>
+                <span class="name" title="系统管理员">{{ item.create_name }}</span>
+                <span class="oper-name">{{ item.description }}</span>
               </div>
-              <span class="time">昨天 17:31</span>
+              <span class="time">{{ item.create_time }}</span>
             </div>
             <div class="dc-info">
               <span class="dc-box el-tooltip__trigger el-tooltip__trigger"><img src="../../../assets/libary/icon-wjj.png" class="icon" /><span data-v-9d2aa61e="">新建文件.docx</span></span>
             </div>
           </div>
-          <div class="dyn-item">
+          <!-- <div class="dyn-item">
             <div class="oper-user">
               <div class="name-info">
                 <img src="../../../assets/libary/personnel.png" />
@@ -34,7 +34,7 @@
             <div class="dc-info">
               <span class="dc-box el-tooltip__trigger el-tooltip__trigger"><img src="../../../assets/libary/icon-word.png" class="icon" /><span data-v-9d2aa61e="">frfrfr</span></span>
             </div>
-          </div>
+          </div> -->
         </a-tab-pane>
       </a-tabs>
     </div>
@@ -45,7 +45,7 @@
   import { ref, reactive, watch, onMounted, toRefs } from "vue";
   import { FileZipOutlined, SettingOutlined } from "@ant-design/icons-vue";
   import { message } from "ant-design-vue";
-  import { postlibraryapi } from "../../../api/index.js";
+  import { postlibraryapi, getLogApi } from "../../../api/index.js";
   import { useAppStore } from "../../../store/module/app.js";
   import qs from "qs";
 
@@ -84,9 +84,20 @@
   };
 
   const id_ = ref("");
-  const showDrawer = (item) => {
+  const logList = ref([]);
+  const showDrawer = async (item) => {
     console.log(item);
     visible.value = true;
+
+    const data = {
+      type: "page",
+    };
+    const response = await getLogApi(qs.stringify(data));
+
+    if (response.data.obj.error == "") {
+      console.log(response);
+      logList.value = response.data.obj.data;
+    }
   };
 
   // watch(

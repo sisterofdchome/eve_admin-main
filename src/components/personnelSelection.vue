@@ -1,272 +1,208 @@
 <template>
-  <a-modal v-model:visible="personVisible" title="人员选择" centered @ok="handleOk" width="730px">
-    <div class="user-info-list">
-      <div class="user-info-left">
-        <div class="user-info-title">
-          <div :class="index == userTabActive ? 'user-tab-item user-tab-active' : 'user-tab-item'" v-for="(item, index) in userTabList" @click="userTabActive = index">{{ item.name }}</div>
+  <a-modal v-model:visible="personVisible" title="人员选择" centered @ok="handleOk" width="730px" :confirm-loading="loading" :maskClosable="false">
+    <a-spin :spinning="loading">
+      <div class="user-info-list">
+        <div class="user-info-left">
+          <div class="user-info-title">
+            <div :class="index == userTabActive ? 'user-tab-item user-tab-active' : 'user-tab-item'" v-for="(item, index) in userTabList" @click="changeTab(index)">
+              {{ item.name }}
+            </div>
+          </div>
+          <div class="user-info-body">
+            <div class="search-box" v-if="userTabActive == 0">
+              <a-input-search v-model:value="condition" placeholder="请输入搜索内容" enter-button @search="handleSearch" allowClear :loading="searchLoading" />
+            </div>
+            <div class="content" v-if="userTabActive == 0">
+              <template v-if="userList.length > 0">
+                <div class="check-box-item" v-for="item in userList" @click="selHandle(item, 'user')">
+                  <template v-if="!isChecked(item.id, 'user')">
+                    <BorderOutlined class="icon" />
+                  </template>
+                  <template v-else>
+                    <CheckSquareFilled style="color: #1677ff; font-size: 18px" />
+                  </template>
+                  <img src="../assets/libary/userHead.png" />
+                  <span class="name">{{ item.fullname }}</span>
+                </div>
+              </template>
+              <a-empty v-else description="暂无人员数据" />
+            </div>
+            <div class="content no-user-content" v-if="userTabActive == 1">
+              <!-- <template v-if="deptList.length > 0">
+                <a-button type="primary" style="margin-left: 31px">刷新</a-button>
+                <div class="check-box-item" v-for="item in deptList" @click="selHandle(item, 'dept')">
+                  <template v-if="!isChecked(item.id, 'dept')">
+                    <BorderOutlined class="icon" />
+                  </template>
+                  <template v-else>
+                    <CheckSquareFilled style="color: #1677ff; font-size: 18px" />
+                  </template>
+                  <span class="name">{{ item.name }}</span>
+                </div>
+              </template> -->
+              <div v-if="deptList.length > 0">
+                <a-button type="primary" style="margin: 10px 20px" @click="getTreeDataByDemid('refresh')">刷新</a-button>
+                <a-tree v-model:value="treeValue" checkable defaultExpandAll :selectable="false" v-model:checkedKeys="checked_Keys" multiple :tree-data="deptList" @check="handleCheck">
+                  <template #title="{ name, value, parentId }">
+                    <span v-if="parentId === '0'" style="color: #1890ff" disabled>{{ name }}</span>
+                    <template v-else>{{ name }}</template>
+                  </template>
+                </a-tree>
+              </div>
+              <a-empty v-else description="暂无部门数据" />
+            </div>
+            <div class="content no-user-content" v-if="userTabActive == 2">
+              <template v-if="roleList.length > 0">
+                <div class="check-box-item" v-for="item in roleList" @click="selHandle(item, 'role')">
+                  <template v-if="!isChecked(item.id, 'role')">
+                    <BorderOutlined class="icon" />
+                  </template>
+                  <template v-else>
+                    <CheckSquareFilled style="color: #1677ff; font-size: 18px" />
+                  </template>
+                  <span class="name">{{ item.name }}</span>
+                </div>
+              </template>
+              <a-empty v-else description="暂无角色数据" />
+            </div>
+            <div class="page" v-if="total > 0 && userTabActive == 0">
+              <a-pagination size="small" :total="total" :show-total="(total) => `共 ${total} 条数据`" show-quick-jumper @change="handlePageChange" />
+            </div>
+          </div>
         </div>
-        <div class="user-info-body">
-          <div class="search-box">
-            <a-input v-model:value="condition" placeholder="请输入手机号或名字搜索">
-              <template #prefix>
-                <SearchOutlined />
-              </template>
-            </a-input>
+        <div class="user-info-right">
+          <div class="user-right-title">
+            <div class="num">已选({{ selectUserList.length }})</div>
+            <div class="clear" @click="clearSelection">清空</div>
           </div>
-          <div class="content" v-if="userTabActive == 0">
-            <div class="check-box-item" v-for="item in userList" @click="selHandle(item, 'user')">
-              <template v-if="!isChecked(item.id, 'user')">
-                <BorderOutlined class="icon" />
-              </template>
-              <template v-else>
-                <CheckSquareFilled style="color: #1677ff; font-size: 18px" />
-              </template>
-              <img src="../assets/libary/userHead.png" />
-              <span class="name">{{ item.fullname }}</span>
-            </div>
-          </div>
-          <div class="content no-user-content" v-if="userTabActive == 1">
-            <div class="check-box-item" v-for="item in deptList" @click="selHandle(item, 'dept')">
-              <template v-if="!isChecked(item.id, 'dept')">
-                <BorderOutlined class="icon" />
-              </template>
-              <template v-else>
-                <CheckSquareFilled style="color: #1677ff; font-size: 18px" />
-              </template>
-              <span class="name">{{ item.name }}</span>
-            </div>
-          </div>
-          <div class="content no-user-content" v-if="userTabActive == 2">
-            <div class="check-box-item" v-for="item in roleList" @click="selHandle(item, 'role')">
-              <template v-if="!isChecked(item.id, 'role')">
-                <BorderOutlined class="icon" />
-              </template>
-              <template v-else>
-                <CheckSquareFilled style="color: #1677ff; font-size: 18px" />
-              </template>
-              <span class="name">{{ item.name }}</span>
-            </div>
-          </div>
-          <div class="page">
-            <a-pagination size="small" :total="50" :show-total="(total) => `共 ${total} 条数据`" show-quick-jumper />
+          <div class="user-right-content">
+            <template v-if="selectUserList.length > 0">
+              <div class="cehck-item" v-for="item in selectUserList">
+                <div class="check-item-info">
+                  <img src="../assets/libary/userHead.png" v-if="item.type == 'user'" />
+                  <span v-else-if="item.type == 'dept'">（部门）</span>
+                  <span :title="item.name">{{ item.name }}</span>
+                </div>
+                <CloseCircleFilled class="close-icon" @click.stop="selHandle(item, item.type)" />
+              </div>
+            </template>
+            <a-empty v-else description="暂无选择" />
           </div>
         </div>
       </div>
-      <div class="user-info-right">
-        <div class="user-right-title">
-          <div class="num">已选({{ selectUserList.length }})</div>
-          <div class="clear" @click="selectUserList = []">清空</div>
-        </div>
-        <div class="user-right-content">
-          <div class="cehck-item" v-for="item in selectUserList">
-            <div class="check-item-info">
-              <img src="../assets/libary/userHead.png" v-if="item.type == 'user'" />
-              <span v-else-if="item.type == 'role'">（角色）</span>
-              <span :title="item.name">{{ item.name }}</span>
-            </div>
-            <CloseCircleFilled class="close-icon" @click="selHandle(item, item.type)" />
-          </div>
-        </div>
-      </div>
-    </div>
+    </a-spin>
   </a-modal>
 </template>
 
 <script setup>
   import { ref, watch, onMounted } from "vue";
-  import { BorderOutlined, SearchOutlined, CheckSquareFilled, CloseCircleFilled } from "@ant-design/icons-vue";
-  import { postUserListJson, postTreeDataByDemid } from "../api/index.js";
+  import { BorderOutlined, CheckSquareFilled, CloseCircleFilled } from "@ant-design/icons-vue";
+  import { postUserListJson, postTreeDataByDemid, getOrgTreeApi } from "../api/index.js";
   import qs from "qs";
+  import { message } from "ant-design-vue";
+  import { TreeSelect } from "ant-design-vue";
+  const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
+  // 加载状态
+  const loading = ref(false);
+  const searchLoading = ref(false);
+
+  // 其他原有代码保持不变...
   const userTabActive = ref(0);
   const userTabList = ref([
-    {
-      name: "人员",
-      id: 0,
-    },
-    // {
-    //   name: "角色",
-    //   id: 1,
-    // },
-    {
-      name: "部门",
-      id: 2,
-    },
-    // {
-    //   name: "岗位",
-    //   id: 3,
-    // },
-    // {
-    //   name: "群组",
-    //   id: 4,
-    // },
-  ]);
-  const userList = ref([
-    {
-      id: 1,
-      name: "张三1",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
-    {
-      id: 2,
-      name: "张三2",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
-    {
-      id: 3,
-      name: "张三3",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
-    {
-      id: 4,
-      name: "张三4",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
-    {
-      id: 5,
-      name: "张三5",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
-    {
-      id: 6,
-      name: "张三6",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
-    {
-      id: 7,
-      name: "张三7",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
-    {
-      id: 8,
-      name: "张三8",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
-    {
-      id: 9,
-      name: "张三9",
-      photo: "https://knowledge.bctools.cn/jvs-knowledge-ui/static/user-f3df3034.png",
-    },
+    { name: "人员", id: 0 },
+    { name: "部门", id: 2 },
   ]);
 
-  const roleList = ref([
-    {
-      id: 1,
-      name: "角色1",
-    },
-    {
-      id: 2,
-      name: "角色2",
-    },
-    {
-      id: 3,
-      name: "角色3",
-    },
-    {
-      id: 4,
-      name: "角色4",
-    },
-    {
-      id: 5,
-      name: "角色5",
-    },
-    {
-      id: 6,
-      name: "角色6",
-    },
-    {
-      id: 7,
-      name: "角色7",
-    },
-    {
-      id: 8,
-      name: "角色8",
-    },
-    {
-      id: 9,
-      name: "角色9",
-    },
-  ]);
-  const deptList = ref([
-    {
-      id: 1,
-      name: "部门1",
-    },
-    {
-      id: 2,
-      name: "部门2",
-    },
-    {
-      id: 3,
-      name: "部门3",
-    },
-    {
-      id: 4,
-      name: "部门4",
-    },
-    {
-      id: 5,
-      name: "部门5",
-    },
-    {
-      id: 6,
-      name: "部门6",
-    },
-    {
-      id: 7,
-      name: "部门7",
-    },
-    {
-      id: 8,
-      name: "部门8",
-    },
-    {
-      id: 9,
-      name: "部门9",
-    },
-  ]);
-
-  onMounted(() => {
-    console.log(deptList.value);
-    getTreeDataByDemid();
-    getUserListJson();
-  });
-  // 获取人员选择
-  const getUserListJson = async () => {
-    const data = {
-      page: 1,
-      rows: 30,
-      // "Q^fullname_^SL": "邓",
-    };
-    let res = await postUserListJson(qs.stringify(data));
-    // demid: id
-    console.log(res);
-    // userList.value = res.data.rows;
-    userList.value = res.data.rows.map((item) => ({
-      ...item,
-      name: item.fullname, // 将 fullname 赋值给 name
-    }));
-    console.log(userList.value);
-  };
-  // 获取公司选择
-  const getTreeDataByDemid = async () => {
-    let res = await postTreeDataByDemid({});
-    // demid: id
-    console.log(res);
-    deptList.value = res.data;
-  };
-
-  const total = ref(50);
-  const isChecked = (id, type) => {
-    //判断是否选中
-    return selectUserList.value.findIndex((item) => item.id === id && item.type === type) !== -1;
-  };
+  const userList = ref([]);
+  const roleList = ref([]);
+  const deptList = ref([]);
   const selectUserList = ref([]);
   const condition = ref("");
   const personVisible = ref(false);
+  const currentIndex = ref("");
+  const total = ref(0);
+  const treeValue = ref([]);
+
+  const pages = ref({
+    page: 1,
+    limit: 10,
+  });
+
+  // 修改后的获取数据方法
+  const getUserListJson = async () => {
+    loading.value = true;
+    const data = {
+      page: pages.value.page,
+      rows: pages.value.limit,
+      "Q^fullname_^SL": condition.value,
+    };
+    let res = await postUserListJson(qs.stringify(data));
+    userList.value = res.data.rows.map((item) => ({
+      ...item,
+      name: item.fullname,
+    }));
+    total.value = res.data.total || 0;
+    loading.value = false;
+  };
+
+  const getTreeDataByDemid = async (type) => {
+    loading.value = true;
+    const data = {
+      type: type,
+    };
+    const response = await getOrgTreeApi(data);
+    console.log("接口请求成功:", response);
+    deptList.value = response.data.obj.sys_org_redis;
+    // 让deptList每一项的disabled字段为true
+    deptList.value.forEach((item) => {
+      item.disabled = true;
+      item.lable = item.name;
+    });
+    console.log(deptList.value);
+
+    loading.value = false;
+  };
+
+  // 新增方法
+  const changeTab = async (index) => {
+    userTabActive.value = index;
+    // 可以根据需要在这里加载对应tab的数据
+    // if (index === 0) {
+    //   await getUserListJson();
+    // }
+    // if (index === 1) {
+    //   await getTreeDataByDemid("get");
+    //   console.log(checked_Keys.value);
+    // }
+  };
+
+  const handleSearch = () => {
+    searchLoading.value = true;
+    getUserListJson().finally(() => {
+      searchLoading.value = false;
+    });
+  };
+
+  const handlePageChange = (page, pageSize) => {
+    // 处理分页变化
+    console.log("Page changed:", page, pageSize);
+    // 这里可以添加获取分页数据的逻辑
+    pages.value.page = page;
+    pages.value.limit = pageSize;
+    getUserListJson();
+  };
+
+  const clearSelection = () => {
+    selectUserList.value = [];
+  };
+
+  // 其他原有方法保持不变...
+  const isChecked = (id, type) => {
+    return selectUserList.value.findIndex((item) => item.id === id && item.type === type) !== -1;
+  };
+
   const selHandle = (user, type) => {
-    console.log(user);
-    //判断user是否在selectUserList中，存在则删除，不存在则添加
     let index = selectUserList.value.findIndex((item) => item.id === user.id && item.type === type);
     if (index !== -1) {
       selectUserList.value.splice(index, 1);
@@ -274,29 +210,66 @@
       user.type = type;
       selectUserList.value.push(user);
     }
+  };
+  const handleCheck = (checkedKeys, e) => {
+    if (e.node.dataRef.children != undefined) {
+      return;
+    }
 
-    console.log(selectUserList.value);
+    console.log("handleCheck", checkedKeys, e);
+    const item = e.node.dataRef;
+    item.id = item.value;
+    selHandle(item, "dept");
+    console.log(checked_Keys.value);
   };
-  const searchUser = () => {
-    //搜索
-  };
+
   const closePersonVisible = () => {
     personVisible.value = false;
   };
-  const showPersonVisible = (index, userList) => {
+
+  const showPersonVisible = async (index, userList) => {
     personVisible.value = true;
     currentIndex.value = index;
-    selectUserList.value = userList;
-  };
-  // 新增事件发射
-  const emit = defineEmits(["submitUsers"]);
+    selectUserList.value = userList || [];
+    console.log("userList: ", userList);
 
-  const currentIndex = ref("");
+    // 打开时加载数据
+    getUserListJson();
+    await getTreeDataByDemid("get"); // 等待数据加载完成
+    const value = [];
+    // 将userList每一项的value放在一个数组里，type为dept
+    userList.forEach((item) => {
+      if (item.type === "dept") {
+        value.push(item.value);
+      }
+    });
+    console.log("value: ", value);
+
+    checked_Keys.value = ["0-0-0"];
+    // checked_Keys.value = value;
+  };
 
   const handleOk = () => {
-    personVisible.value = false;
-    emit("submitUsers", selectUserList.value, currentIndex.value); // 发射选中数据
+    loading.value = true;
+    setTimeout(() => {
+      personVisible.value = false;
+      emit("submitUsers", selectUserList.value, currentIndex.value);
+      loading.value = false;
+    }, 300);
   };
+  const expandedKeys = ref([]);
+  const checked_Keys = ref([]);
+  watch(expandedKeys, () => {
+    console.log("expandedKeys", expandedKeys);
+  });
+  watch(checked_Keys, () => {
+    console.log("checked_Keys", checked_Keys);
+  });
+  watch(treeValue, () => {
+    console.log(treeValue.value);
+  });
+
+  const emit = defineEmits(["submitUsers"]);
 
   defineExpose({
     showPersonVisible,
@@ -425,6 +398,7 @@
     height: 39px;
     padding-right: 24px;
     border-top: 1px solid #eeeff0;
+    padding-top: 30px;
   }
 
   .user-info-list .user-info-right .user-right-content .cehck-item {
@@ -472,5 +446,9 @@
     height: 24px;
     border-radius: 4px;
     margin-right: 12px;
+  }
+  .user-info-body {
+    position: relative;
+    min-height: 200px;
   }
 </style>

@@ -59,4 +59,13 @@ export const postUserListJson  = (data) => postapi("/org/user/listJson", data, {
 
 export const postPermissionApi  = (data) => postapi("/reportInputController?common&id=1c534328a32648e2b87b1b7fe638f674", data, {});
 
-
+/*
+* 获取部门树权限
+*
+*/
+export const getOrgTreeApi  = (data) => getapi("/reportInputController?common&id=0e5e211791ab432f891cb97395f87e93", data);
+/*
+* 获取部门树权限
+*
+*/
+export const getLogApi  = (data) => postapi("/reportInputController?common&id=797e8725120c47c2a61807f1786b2967", data);
