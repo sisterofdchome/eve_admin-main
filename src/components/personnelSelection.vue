@@ -210,6 +210,7 @@
       user.type = type;
       selectUserList.value.push(user);
     }
+    console.log(selectUserList.value);
   };
   const handleCheck = (checkedKeys, e) => {
     if (e.node.dataRef.children != undefined) {
@@ -234,18 +235,18 @@
     console.log("userList: ", userList);
 
     // 打开时加载数据
-    getUserListJson();
+    await getUserListJson();
     await getTreeDataByDemid("get"); // 等待数据加载完成
     const value = [];
     // 将userList每一项的value放在一个数组里，type为dept
-    userList.forEach((item) => {
-      if (item.type === "dept") {
-        value.push(item.value);
-      }
-    });
-    console.log("value: ", value);
+    // userList.forEach((item) => {
+    //   if (item.type === "dept") {
+    //     value.push(item.value);
+    //   }
+    // });
+    // console.log("value: ", value);
 
-    checked_Keys.value = ["0-0-0"];
+    // checked_Keys.value = ["0-0-0"];
     // checked_Keys.value = value;
   };
 

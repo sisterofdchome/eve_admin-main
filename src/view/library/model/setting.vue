@@ -299,7 +299,7 @@
     settingNav.value[1].name = settingTitle.value + "权限";
     id_.value = item.id_;
 
-    // 文库的权限具体信息
+    // 回显；文库的权限具体信息
     getPermissionGroup();
   };
 
@@ -313,7 +313,33 @@
 
     if (response.data.success) {
       console.log(response);
-      console.log(response.data.obj.permissionMap);
+      console.log();
+      const keys = Object.keys(response.data.obj.permissionMap);
+
+      const permissionMap = [];
+      keys.forEach((key) => {
+        const items = response.data.obj.permissionMap[key];
+        console.log(`Key: ${key}`);
+        console.log("Items:", items);
+        const list = {
+          members: items,
+          permissions: convertBinaryStringToPositionArray(key),
+        };
+
+        permissionMap.push(list);
+      });
+      console.log(permissionMap);
+      permissionGroups.value = permissionMap;
+      // 渲染member数组
+      for (var i = 0; i < permissionGroups.value.length; i++) {
+        permissionGroups.value[i].members.forEach((item) => {
+          item.type = "user";
+          item.id = item.user_id;
+          item.name = item.user_name;
+        });
+      }
+
+      console.log(permissionGroups.value);
       // settingOptin.value = response.data.obj.permissionMap;
       // console.log(settingOptin.value);
     }
@@ -517,32 +543,50 @@
     const allOptions = settingOptin.value.map((item) => item.number); // 所有的选项
 
     // 将人员数组和权限数组分别转换为字符串，通过，连接
-    const permissionsData = permissionGroups.value.map((group) => ({
-      users: group.members.map((obj) => obj.id).join(","),
+    const permissionsData_users = permissionGroups.value.map((group) => ({
+      users: group.members
+        .filter((member) => member.type === "user")
+        .map((obj) => obj.id)
+        .join(","),
+      user_permission: allOptions.map((option) => (group.permissions.includes(option) ? "1" : "0")).join(""), //转为2进制
+      type: "add",
+      classification_tree_id: selectedChildren.value,
+    }));
+    const permissionsData_orgs = permissionGroups.value.map((group) => ({
+      orgs: group.members
+        .filter((member) => member.type === "dept")
+        .map((obj) => obj.id)
+        .join(","),
       user_permission: allOptions.map((option) => (group.permissions.includes(option) ? "1" : "0")).join(""), //转为2进制
       type: "add",
       classification_tree_id: selectedChildren.value,
     }));
 
-    console.log(permissionsData);
+    console.log(permissionsData_users);
+    console.log(permissionsData_orgs);
     // const res = await postPermissionApi(qs.stringify(permissionsData));
     // 校验每一项的users和user_permission是否都存在且不为空
-    for (let i = 0; i < permissionsData.length; i++) {
-      if (!permissionsData[i].users) {
+    for (let i = 0; i < permissionGroups.value.length; i++) {
+      if (permissionGroups.value[i].members == 0) {
         message.error("请选择人员");
         return;
       }
-      if (permissionsData[i].user_permission == "0000") {
+      if (permissionGroups.value[i].permissions.length == 0) {
         message.error("请勾选权限");
         return;
       }
     }
 
     // 循环permissionsData，调用接口
-    // for (let i = 0; i < permissionsData.length; i++) {
-    //   const res = await postPermissionApi(qs.stringify(permissionsData[i]));
-    //   console.log(res);
-    // }
+    for (let i = 0; i < permissionsData_users.length; i++) {
+      const res = await postPermissionApi(qs.stringify(permissionsData_users[i]));
+      console.log(res);
+    }
+    // 组织
+    for (let i = 0; i < permissionsData_orgs.length; i++) {
+      const res = await postPermissionApi(qs.stringify(permissionsData_orgs[i]));
+      console.log(res);
+    }
 
     // const response = await postPermissionApi(qs.stringify(permissionsData));
 
@@ -555,6 +599,19 @@
     //   message.error("更新失败");
     // }
   };
+  // 将二进制转化为数组   1111 为【1，2，3，4】 0001 为 [4]
+  function convertBinaryStringToPositionArray(binaryStr) {
+    const result = [];
+    const reversed = binaryStr.split(""); // 从右往左处理
+
+    reversed.forEach((char, index) => {
+      if (char === "1") {
+        result.push(index + 1);
+      }
+    });
+
+    return result;
+  }
 
   watch(
     () => checkedList.value,
