@@ -73,7 +73,7 @@
   import { useAppStore } from "../../store/module/app";
   const appStore = useAppStore();
   // 引入appStore中的属性
-  const { sideCollapsed, theme, menu, selectedKeys, openKeys, breadValue } = storeToRefs(appStore);
+  const { selectedChildren, selectedKeys, openKeys, breadValue, backLibrary, fileVisible } = storeToRefs(appStore);
   const route = useRoute();
 
   // const title = ref(route.query.title);
@@ -101,6 +101,11 @@
 
     breadValue.value[0] = { id: 0, name: "全部文库", url: "/allLibrary/全部文库" };
     breadValue.value[1] = { id: item.id_, name: item.name, url: `item.url${item.id_}` };
+    backLibrary.value = true;
+
+    fileVisible.value = false;
+    selectedChildren.value = item.id_;
+
     // if (item.url) {
     //   selectedKeys.value = item.id_;
     //   router.push({

@@ -9,17 +9,19 @@
           </div></a-tab-pane
         >
         <a-tab-pane key="2" tab="动态" force-render>
-          <div class="dyn-item" v-for="item in logList" :key="item.id_">
+          <div class="dyn-item" v-for="item in logList.data" :key="item.id_">
             <div class="oper-user">
               <div class="name-info">
                 <img src="../../../assets/libary/personnel.png" />
                 <span class="name" title="系统管理员">{{ item.create_name }}</span>
-                <span class="oper-name">{{ item.description }}</span>
               </div>
               <span class="time">{{ item.create_time }}</span>
             </div>
+            <!-- <span class="oper-name">{{ item.description }}</span> -->
             <div class="dc-info">
-              <span class="dc-box el-tooltip__trigger el-tooltip__trigger"><img src="../../../assets/libary/icon-wjj.png" class="icon" /><span data-v-9d2aa61e="">新建文件.docx</span></span>
+              <span class="dc-box el-tooltip__trigger el-tooltip__trigger"
+                ><img src="../../../assets/libary/icon-wjj.png" class="icon" /><span data-v-9d2aa61e="">{{ item.description }}</span></span
+              >
             </div>
           </div>
           <!-- <div class="dyn-item">
@@ -97,6 +99,7 @@
     if (response.data.obj.error == "") {
       console.log(response);
       logList.value = response.data.obj.data;
+      console.log(logList.value);
     }
   };
 

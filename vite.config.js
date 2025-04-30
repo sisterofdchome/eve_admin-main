@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
 
   const apiPrefix = env.VITE_GLOB_API_URL_PREFIX?.trim() || '/'; // 拿到 VITE_GLOB_API_URL_PREFIX
   const target = env.VITE_GLOB_DOMAIN_URL; // 拿到完整后端地址
+  
 
   return {
     filePath: "./library/file_img",

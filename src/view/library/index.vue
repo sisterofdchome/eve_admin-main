@@ -42,10 +42,11 @@
               @click="fileHandle(item)"
             >
               <div class="content">
+                <!-- {{ item.file_suffix }} -->
                 <img v-if="item.type == 'folder'" src="../../assets/file/folder.png" height="20px" />
                 <!-- <img v-else src="../../assets/file/doc.png" height="20px" /> -->
                 <!-- file_extension -->
-                <img v-else :src="'./file_img/' + item.name.split('.').pop() + '.png'" style="height: 20px" />
+                <img v-else :src="'../../assets/file/' + item.file_suffix + '.png'" style="height: 20px" />
                 <div class="libary-info">
                   <div class="">
                     <div class="libary-name">{{ item.name }}</div>
@@ -166,7 +167,7 @@
           <div class="file-view-box" :class="{ 'fullscreen-mode': isFullscreen }">
             <Tool v-if="isFullscreen" :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen"></Tool>
           </div>
-          <Comment></Comment>
+          <!-- <Comment></Comment> -->
         </div>
       </div>
       <!-- 文件夹页 -->
@@ -316,7 +317,7 @@
     console.log("接口请求成功:", response);
     if (response.data.result) {
       message.success("操作成功");
-      window.location.href = "https://oa.scnjwh.com/luqiao//jxload/view.pdf?code=" + response.data.message; // 触发文件下载
+      window.location.href = "https://oa.scnjwh.com/luqiao/jxload/view.pdf?code=" + response.data.message; // 触发文件下载
     } else {
       message.error("下载失败");
     }
@@ -443,6 +444,7 @@
       console.log("文件");
       // 提示弹窗
       message.info("文件详情还在开发中！~");
+      preview_office(item.file_id, item.name);
       // 显示文件详情
       appStore.fileVisibleTrue();
       // 文件选中  高亮

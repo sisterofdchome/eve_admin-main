@@ -19,7 +19,7 @@ const menu = [{
 		label: '全部文库',
 		key: '/allLibrary',
 		icon: 'FolderFilled',
-		isExpand: false,
+		isExpand: true,
 		component: 'allLibrary',
 		children: [{
 				name: '文库-1',
@@ -51,7 +51,7 @@ const menu = [{
 		key: '/myLibrary',
 		icon: 'FolderFilled',
 		// url: "/",
-		isExpand: false,
+		isExpand: true,
 		component: 'myLibrary',
 		children: [{
 				name: '文库-4',

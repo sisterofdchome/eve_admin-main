@@ -164,7 +164,7 @@
       key: "-12",
       icon: "svg-wxz",
       url: "/allLibrary/全部文库",
-      isExpand: false,
+      isExpand: true,
       children: [],
     },
     {
@@ -172,7 +172,7 @@
       key: "-13",
       icon: "svg-wxz",
       url: "/myLibrary/我的文库",
-      isExpand: false,
+      isExpand: true,
       children: [
         // {
         //   title: "文库-4",
