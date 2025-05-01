@@ -7,8 +7,8 @@
         <div class="ant-file-box">
           <div class="ant-item-thumbnail flex">
             <!-- <a class="fa fa-file-o"></a> -->
-            <img :src="'../assets/file/' + file.name.split('.').pop() + '.png'" style="height: 24px; width: 21px" />
-            <!-- <img :src="'./file_img/' + file.name.split('.').pop() + '.png'" style="height: 24px; width: 21px" /> -->
+            <!-- <img :src="'../assets/file/' + file.name.split('.').pop() + '.png'" style="height: 24px; width: 21px" /> -->
+            <img :src="'./file_img/' + file.name.split('.').pop() + '.png'" style="height: 24px; width: 21px" />
           </div>
           <div class="ant-file-name">
             <div @click="previewFile(file)" :style="file.status === 'error' ? 'color: red' : ''">{{ file.name }}</div>

@@ -4,7 +4,7 @@
     <a-table :columns="columns" :data-source="dataSource" bordered :pagination="pagination">
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'file_name'">
-          <div class="editable-cell"><img src="../../assets/file/doc.png" height="20px" style="margin-right: 6px" />{{ record.file_name }}</div>
+          <div class="editable-cell" @click="getPathUrl(record)"><img src="../../assets/file/doc.png" height="20px" style="margin-right: 6px" />{{ record.file_name }}</div>
         </template>
         <template v-if="column.dataIndex === 'operation'">
           <div class="editable-row-operations">
@@ -26,7 +26,7 @@
 
   import { useRoute } from "vue-router";
 
-  import { postcollectapi } from "../../api/index";
+  import { postcollectapi, postDownloadFile } from "../../api/index";
   import qs from "qs";
   import { message } from "ant-design-vue";
 
@@ -51,6 +51,7 @@
     {
       title: "操作栏",
       dataIndex: "operation",
+      align: "center",
     },
   ];
   const dataSource = ref([]);
@@ -115,15 +116,53 @@
       console.error("接口请求失败:", error);
     }
   };
+  const pathUrl = ref("");
+
+  const getPathUrl = async (record) => {
+    const newName = record.file_name;
+    const newId = record.file_id;
+    const formData = {
+      sf: "1",
+      code: newId,
+      vtype: "view",
+    };
+
+    // 如果是图片类型直接预览
+    if (isImageFile(newName)) {
+      // pathUrl.value = `https://example.com/image-preview/${newId}`; // 替换为实际图片预览地址
+      // const response = await postDownloadFile(qs.stringify(formData));
+      // if (response.data.result) {
+      //   pathUrl.value = "https://oa.scnjwh.com/luqiao/jxload/view.pdf?code=" + response.data.message;
+      // }
+      preview_office(newId, newName);
+    } else {
+      // const response = await postDownloadFile(qs.stringify(formData));
+      // if (response.data.result) {
+      //   pathUrl.value = response.data.path;
+      // }
+      edit_office(newId, newName);
+    }
+  };
+
+  function isImageFile(newName) {
+    if (typeof newName !== "string") return false;
+    // 提取扩展名并转为小写
+    const extension = newName.split(".").pop().toLowerCase();
+    // 常见图片扩展名列表
+    const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"];
+    return imageExtensions.includes(extension);
+  }
   const cancel = (key) => {};
 </script>
 <style scoped>
   .editable-cell {
     align-items: center;
     display: flex;
+    color: #1677ff;
+    cursor: pointer;
   }
   .editable-row-operations a {
-    margin-right: 8px;
+    /* margin-right: 8px; */
   }
 
   .title {

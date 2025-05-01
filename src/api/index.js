@@ -26,11 +26,12 @@ export const postFileapi = (data) => postapi("/reportInputController?common&id=3
 
 export const postFileUpload = (data) => postapi("/system/file/fileUpload?code=&biz_type=CLOUD_DISK", data, {});
 /*
-* 文件下载
+* 文件下载,预览，编辑
 *
 */
 
 export const postDownloadFile  = (data) => postapi("/jxload/bulid", data, {});
+
 /*
 * 部门公司列表
 *
@@ -64,5 +65,6 @@ export const getLogApi  = (data) => postapi("/reportInputController?common&id=79
 //    http://localhost:9015/luqiao/supervise/system/file/fileUpload?code=&biz_type=
 //    `/luqiao/system/file/fileUpload?code=&biz_type=CLOUD_DISK`
 
-export const uploadFileApi =  baseURL + "system/file/fileUpload?code=&biz_type="
+export const uploadFileApi =  baseURL + "system/file/fileUpload?code=&biz_type=CLOUD_DISK"
+
 

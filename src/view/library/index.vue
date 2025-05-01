@@ -46,7 +46,7 @@
                 <img v-if="item.type == 'folder'" src="../../assets/file/folder.png" height="20px" />
                 <!-- <img v-else src="../../assets/file/doc.png" height="20px" /> -->
                 <!-- file_extension -->
-                <img v-else :src="'../../assets/file/' + item.file_suffix + '.png'" style="height: 20px" />
+                <img v-else :src="'./file_img/' + item.file_suffix + '.png'" style="height: 20px" />
                 <div class="libary-info">
                   <div class="">
                     <div class="libary-name">{{ item.name }}</div>
@@ -61,9 +61,9 @@
                           <span class="more-icon">
                             <FormOutlined />
                           </span>
-                          <span class="more-name">编辑( √ )</span>
+                          <span class="more-name">编辑</span>
                         </div>
-                        <div class="more-item" v-else>
+                        <div class="more-item" v-else @click="editFile(item, index)">
                           <span class="more-icon">
                             <FormOutlined />
                           </span>
@@ -73,7 +73,7 @@
                           <span class="more-icon">
                             <FormOutlined />
                           </span>
-                          <span class="more-name" @click="editHandle(item, index)">重命名( √ )</span>
+                          <span class="more-name" @click="editHandle(item, index)">重命名</span>
                         </div>
                         <div class="more-item" v-if="item.type == 'file'" @click="downloadFile(item, index)">
                           <span class="more-icon">
@@ -98,20 +98,20 @@
                           <span class="more-icon">
                             <ImportOutlined />
                           </span>
-                          <span class="more-name">移动( √ )</span>
+                          <span class="more-name">移动</span>
                         </div>
                         <!-- <div class="more-item" v-if="item.type == 'file'">
                           <div v-if="item.is_favorite == ''" style="display: flex; align-items: center" @click="collectHandleOk(item, index)">
                             <span class="more-icon">
                               <HeartOutlined style="color: #282828" />
                             </span>
-                            <span class="more-name">添加收藏( √ )</span>
+                            <span class="more-name">添加收藏</span>
                           </div>
                           <div v-else style="display: flex; align-items: center" @click="folderDelete(item, index)">
                             <span class="more-icon">
                               <HeartFilled style="color: #1e6fff" />
                             </span>
-                            <span class="more-name">取消收藏( √ )</span>
+                            <span class="more-name">取消收藏</span>
                           </div>
                         </div> -->
 
@@ -120,7 +120,7 @@
                             <HeartOutlined v-if="!item.is_favorite" />
                             <HeartFilled v-else style="color: #1e6fff" />
                           </span>
-                          <span class="more-name"> {{ item.is_favorite ? "取消收藏" : "添加收藏" }}( √ ) </span>
+                          <span class="more-name"> {{ item.is_favorite ? "取消收藏" : "添加收藏" }} </span>
                         </div>
                         <!-- 标签 -->
                         <!-- <div class="more-item">
@@ -134,13 +134,13 @@
                           <span class="more-icon">
                             <SettingOutlined />
                           </span>
-                          <span class="more-name">设置( √ )</span>
+                          <span class="more-name">设置</span>
                         </div>
                         <div class="more-item" @click="showDeleteConfirm(item, index)">
                           <span class="more-icon">
                             <DeleteOutlined />
                           </span>
-                          <span class="more-name">删除( √ )</span>
+                          <span class="more-name">删除</span>
                         </div>
                       </div>
                     </template>
@@ -159,13 +159,16 @@
         <Comment></Comment>
       </div> -->
       <!-- 文件详情页 -->
-      <div v-if="fileVisible && !backLibrary" style="width: 100%">
+      <div v-if="fileVisible && !backLibrary" style="width: 100%; height: 100%">
         <!-- <fileContent ref="fileContentRef" :id="id"></fileContent> -->
         <!-- <div class="knowledge-right" style="width: calc(100% - 240px); height: calc(100vh - 127px); overflow: overlay"> -->
         <div class="knowledge-right">
           <!-- <div class="file-view-box"></div> -->
           <div class="file-view-box" :class="{ 'fullscreen-mode': isFullscreen }">
             <Tool v-if="isFullscreen" :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen"></Tool>
+
+            <!-- <iframe v-if="officeUrl" :src="officeUrl" frameborder="0" style="width: 100%; height: 100%"></iframe> -->
+            <PreviewFile :fileName="previewFileName" :fileId="previewFileId" :isEditMode="isEditStatus"></PreviewFile>
           </div>
           <!-- <Comment></Comment> -->
         </div>
@@ -216,6 +219,7 @@
   import Tool from "./model/tool.vue";
   import Comment from "./model/comment.vue";
   import LibraryContent from "./model/libraryContent.vue";
+  import PreviewFile from "../../components/previewFile.vue";
   import fileContent from "./model/fileContent.vue";
   import Setting from "./model/setting.vue";
   import Editor from "./model/editor.vue";
@@ -281,6 +285,26 @@
   const editHandle = (item, index) => {
     popoverVisible.value[index] = false;
     editorRef.value.showModal(item);
+  };
+
+  // 编辑文档
+  const editFile = (item, index) => {
+    // 关闭下拉框
+    popoverVisible.value[index] = false;
+    // 设置编辑模式并触发预览
+    previewFileName.value = item.name;
+    previewFileId.value = item.file_id;
+    appStore.fileVisibleTrue();
+    menuIndex.value = item.id_;
+    selectedFileId.value = item.file_id;
+
+    isEditStatus.value = true;
+
+    // // 强制重新挂载预览组件以传递新的isEditMode
+    // nextTick(() => {
+    //   // 通过给key添加时间戳强制刷新组件
+    //   previewFileName.value += `?t=${Date.now()}`;
+    // });
   };
   // 设置弹窗
   const settingHandle = (item, index) => {
@@ -386,50 +410,19 @@
     }
   };
 
-  // // 添加收藏
-  // const collectHandleOk = async (item, index) => {
-  //   console.log("item", item);
-  //   popoverVisible.value[index] = false;
-
-  //   const formData = {
-  //     type: "add",
-  //     favorite_id: item.id_,
-  //   };
-  //   const response = await postcollectapi(qs.stringify(formData));
-  //   if (response.data.obj.error == "") {
-  //     console.log("接口请求成功:", response);
-  //     message.success(response.data.msg);
-  //     fetchLibraryTree(item.pid);
-  //   } else {
-  //     message.error(response.data.obj.error);
-  //   }
-  // };
-  // // 取消收藏
-  // const folderDelete = async (item, index) => {
-  //   popoverVisible.value[index] = false;
-  //   console.log(item);
-  //   const formData = {
-  //     type: "delete",
-  //     id_: item.is_favorite,
-  //   };
-  //   const response = await postcollectapi(qs.stringify(formData));
-
-  //   if (response.data.obj.error == "取消收藏成功") {
-  //     console.log("接口请求成功:", response);
-  //     message.success(response.data.msg);
-  //     fetchLibraryTree(item.pid);
-  //   } else {
-  //     message.error(response.data.obj.error);
-  //   }
-  // };
   const collectHand = (item, index) => {
     popoverVisible.value[index] = false;
     appStore.toggleFavorite(item);
   };
+  const previewFileName = ref("");
+  const previewFileId = ref("");
+  const isEditStatus = ref(false);
   // 点击下一级
   const fileHandle = (item) => {
     console.log(item);
     backLibrary.value = false;
+    // 关闭文档编辑的权限状态
+    isEditStatus.value = false;
 
     if (item.type == "folder") {
       selectedChildren.value = item.id_;
@@ -443,8 +436,17 @@
       // 文件
       console.log("文件");
       // 提示弹窗
-      message.info("文件详情还在开发中！~");
-      preview_office(item.file_id, item.name);
+      // message.info("文件详情还在开发中！~");
+      // 如果file_suffix字段是jpg png jpeg 则预览
+
+      // if (item.file_suffix == "jpg" || item.file_suffix == "png" || item.file_suffix == "jpeg") {
+      //   preview_office(item.file_id, item.name);
+      // } else {
+      //   edit_office(item.file_id, item.name);
+      // }
+      previewFileName.value = item.name;
+      previewFileId.value = item.file_id;
+
       // 显示文件详情
       appStore.fileVisibleTrue();
       // 文件选中  高亮
@@ -768,7 +770,8 @@
 
   .knowledge-info-body {
     display: flex;
-    height: calc(100% - 44px);
+    /* height: calc(100% - 44px); */
+    height: 100%;
     position: relative;
   }
   .check-icon {
