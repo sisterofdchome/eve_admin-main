@@ -20,7 +20,7 @@ function getToken() {
 instance.interceptors.request.use(
     // config: 该参数表示当前请求的配置对象
     (config) => {
-        // config.headers["Authorization"] = "Bearer " + getToken(); // 使用 Bearer token
+        config.headers["Authorization"] = "Bearer " + getToken(); // 使用 Bearer token
         config.headers["Content-Type"] = "application/x-www-form-urlencoded";
         return config;
     },

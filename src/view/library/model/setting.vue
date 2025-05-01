@@ -18,6 +18,16 @@
               <a-form-item :label="settingTitle + '描述'" name="description" v-if="settingTitle == '文库'">
                 <a-textarea v-model:value="formState.description" placeholder="请输入文库描述" :rows="4" />
               </a-form-item>
+
+
+              <a-form-item :label="settingTitle + '创建人'" name="description" >
+                <a-input v-model:value="formState.create_name" :placeholder="'请输入' + settingTitle + '创建人'"  disabled/>
+              </a-form-item>
+
+              <a-form-item :label="settingTitle + '创建人ID'" name="description" style="display: none">
+                <a-input v-model:value="formState.create_by" :placeholder="'请输入' + settingTitle + '创建人'"  disabled/>
+              </a-form-item>
+
             </a-form>
           </div>
           <!-- <div class="auth-box">
@@ -166,6 +176,8 @@
   const formState = reactive({
     classification_name: "",
     description: "",
+    create_name:"",
+
   });
 
   onMounted(() => {
@@ -282,7 +294,7 @@
 
   const id_ = ref("");
   const showDrawer = (item) => {
-    console.log(item);
+    console.log("item", item);
     visible.value = true;
 
     // settingTitle.value = item.type == "folder" ? "文件夹" : "文档";
@@ -295,6 +307,8 @@
       formState.description = item.description;
     }
     formState.classification_name = item.name || item.classification_name;
+    formState.create_name = item.create_name;
+    formState.create_by = item.create_by;
     // formState.description = item.description;
     settingNav.value[1].name = settingTitle.value + "权限";
     id_.value = item.id_;
