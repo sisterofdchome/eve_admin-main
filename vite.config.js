@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        "@": fileURLToPath(new URL("./src", import.meta.url)),
+        '@':fileURLToPath(new URL('./src', import.meta.url))
       },
       extensions: [".mjs", ".js", ".ts", ".jsx", ".tsx", ".json", ".vue"],
     },
