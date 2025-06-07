@@ -115,7 +115,8 @@
           </div>
         </div>
         <div class="button-box">
-          <a-button type="primary" @click="saveAllPermissions">保存设置</a-button>
+          <a-button type="primary" @click="saveAllPermissions" :loading="isSubmit">保存设置</a-button>
+
           <a-button style="margin-left: 12px" @click="visible = false">取消</a-button>
         </div>
       </div>
@@ -551,68 +552,67 @@
     permissionGroups.value[groupIndex].permissions = e.target.checked ? settingOptin.value.map((opt) => opt.value) : [];
   };
 
-  // 保存所有权限设置
+  const isSubmit = ref(false); // 控制提交状态
+
   const saveAllPermissions = async () => {
-    console.log(permissionGroups.value);
-    const allOptions = settingOptin.value.map((item) => item.number); // 所有的选项
+    if (isSubmit.value) return; // 防止重复点击
+    isSubmit.value = true;
 
-    // 将人员数组和权限数组分别转换为字符串，通过，连接
-    const permissionsData_users = permissionGroups.value.map((group) => ({
-      users: group.members
-        .filter((member) => member.type === "user")
-        .map((obj) => obj.id)
-        .join(","),
-      user_permission: allOptions.map((option) => (group.permissions.includes(option) ? "1" : "0")).join(""), //转为2进制
-      type: "add",
-      classification_tree_id: selectedChildren.value,
-    }));
-    const permissionsData_orgs = permissionGroups.value.map((group) => ({
-      orgs: group.members
-        .filter((member) => member.type === "dept")
-        .map((obj) => obj.id)
-        .join(","),
-      user_permission: allOptions.map((option) => (group.permissions.includes(option) ? "1" : "0")).join(""), //转为2进制
-      type: "add",
-      classification_tree_id: selectedChildren.value,
-    }));
+    const allOptions = settingOptin.value.map((item) => item.number);
+    const permissionMap = new Map();
 
-    console.log(permissionsData_users);
-    console.log(permissionsData_orgs);
-    // const res = await postPermissionApi(qs.stringify(permissionsData));
-    // 校验每一项的users和user_permission是否都存在且不为空
-    for (let i = 0; i < permissionGroups.value.length; i++) {
-      if (permissionGroups.value[i].members == 0) {
-        message.error("请选择人员");
-        return;
+    permissionGroups.value.forEach((group) => {
+      const users = group.members
+          .filter((member) => member.type === "user")
+          .map((obj) => obj.id);
+
+      const orgs = group.members
+          .filter((member) => member.type === "dept")
+          .map((obj) => obj.id);
+
+      const user_permission = allOptions
+          .map((option) => (group.permissions.includes(option) ? "1" : "0"))
+          .join("");
+
+      if (!permissionMap.has(user_permission)) {
+        if (users.length === 0 && orgs.length === 0) return;
+        permissionMap.set(user_permission, { users: new Set(), orgs: new Set() });
       }
-      if (permissionGroups.value[i].permissions.length == 0) {
-        message.error("请勾选权限");
-        return;
+
+      const entry = permissionMap.get(user_permission);
+      users.forEach((id) => entry.users.add(id));
+      orgs.forEach((id) => entry.orgs.add(id));
+    });
+
+    const requestData = [];
+    permissionMap.forEach((value, key) => {
+      requestData.push({
+        classification_tree_id: selectedChildren.value,
+        users: Array.from(value.users).join(","),
+        orgs: Array.from(value.orgs).join(","),
+        user_permission: key,
+        type: "updateWithUser",
+      });
+    });
+
+    try {
+      for (let i = 0; i < requestData.length; i++) {
+        const res = await postPermissionApi(qs.stringify(requestData[i]));
       }
+      message.success("权限保存成功！");
+    } catch (e) {
+      console.error(e);
+      message.error("权限保存失败：" + e.message);
+    } finally {
+      isSubmit.value = false;
     }
-
-    // 循环permissionsData，调用接口
-    for (let i = 0; i < permissionsData_users.length; i++) {
-      const res = await postPermissionApi(qs.stringify(permissionsData_users[i]));
-      console.log(res);
-    }
-    // 组织
-    for (let i = 0; i < permissionsData_orgs.length; i++) {
-      const res = await postPermissionApi(qs.stringify(permissionsData_orgs[i]));
-      console.log(res);
-    }
-
-    // const response = await postPermissionApi(qs.stringify(permissionsData));
-
-    // if (response.data.code == 1) {
-    //   console.log("接口请求成功:", response);
-    //   message.success("权限设置成功");
-
-    //   visible.value = false;
-    // } else {
-    //   message.error("更新失败");
-    // }
   };
+
+
+
+
+
+
   // 将二进制转化为数组   1111 为【1，2，3，4】 0001 为 [4]
   function convertBinaryStringToPositionArray(binaryStr) {
     const result = [];

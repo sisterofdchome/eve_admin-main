@@ -148,21 +148,46 @@
 
   const getTreeDataByDemid = async (type) => {
     loading.value = true;
-    const data = {
-      type: type,
-    };
-    const response = await getOrgTreeApi(data);
-    console.log("接口请求成功:", response);
-    deptList.value = response.data.obj.sys_org_redis;
-    // 让deptList每一项的disabled字段为true
-    deptList.value.forEach((item) => {
-      item.disabled = true;
-      item.lable = item.name;
-    });
-    console.log(deptList.value);
 
+    const isRefresh = type === 'refresh';
+    const cacheKey = 'orgTreeCache';
+
+    if (!isRefresh) {
+      const cache = localStorage.getItem(cacheKey);
+      if (cache) {
+        try {
+          const cachedData = JSON.parse(cache);
+          console.log("使用本地缓存:", cachedData);
+          deptList.value = cachedData.map((item) => ({
+            ...item,
+            disabled: true,
+            lable: item.name,
+          }));
+          loading.value = false;
+          return;
+        } catch (e) {
+          console.warn("缓存解析失败，重新请求接口", e);
+        }
+      }
+    }
+
+    // 请求接口（首次或刷新）
+    const response = await getOrgTreeApi({ type });
+    const orgData = response.data.obj.sys_org_redis || [];
+
+    deptList.value = orgData.map((item) => ({
+      ...item,
+      disabled: true,
+      lable: item.name,
+    }));
+
+    // 缓存数据（覆盖旧的）
+    localStorage.setItem(cacheKey, JSON.stringify(orgData));
+
+    console.log("接口请求成功:", orgData);
     loading.value = false;
   };
+
 
   // 新增方法
   const changeTab = async (index) => {
