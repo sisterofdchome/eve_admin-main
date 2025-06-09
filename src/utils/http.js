@@ -21,7 +21,6 @@ instance.interceptors.request.use(
     // config: 该参数表示当前请求的配置对象
     (config) => {
         config.headers["Authorization"] = "Bearer " + getToken(); // 使用 Bearer token
-        config.headers["Content-Type"] = "application/x-www-form-urlencoded";
         return config;
     },
     (err) => {
@@ -50,8 +49,24 @@ const callapi = (method = "GET", url, data = {}) => {
         url,
         params: method === "GET" ? data : {},
         data: method === "POST" ? data : {},
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
     });
 };
+
+const callContentJSONPostApi = (method = "POST", url, data = {}) => {
+    return instance({
+        method,
+        url,
+        data: data,
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+};
+
 //封装GET请求函数
 export const getapi = (url, data) => callapi("GET", url, data);
 export const postapi = (url, data) => callapi("POST", url, data);
+export const postContentJSONPostApi = (url, data) => callContentJSONPostApi("POST", url, data);

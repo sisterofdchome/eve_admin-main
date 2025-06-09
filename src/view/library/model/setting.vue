@@ -140,7 +140,7 @@
   import { useAppStore } from "../../../store/module/app";
   const appStore = useAppStore();
 
-  import { postlibraryapi, postFileapi, postPermissionApi } from "../../../api/index.js";
+  import {postlibraryapi, postFileapi, postPermissionApi, updatePermissionApi} from "../../../api/index.js";
   // 引入appStore中的属性
   import qs from "qs";
   import { storeToRefs } from "pinia";
@@ -587,18 +587,14 @@
     const requestData = [];
     permissionMap.forEach((value, key) => {
       requestData.push({
-        classification_tree_id: selectedChildren.value,
         users: Array.from(value.users).join(","),
         orgs: Array.from(value.orgs).join(","),
         user_permission: key,
-        type: "updateWithUser",
       });
     });
-
+    let requestUrl =    "/reportInputController?common&id=1c534328a32648e2b87b1b7fe638f674&type=updateWithUser" +  "&classification_tree_id=" + id_.value;
     try {
-      for (let i = 0; i < requestData.length; i++) {
-        const res = await postPermissionApi(qs.stringify(requestData[i]));
-      }
+      const res = await updatePermissionApi(requestUrl,JSON.stringify(requestData))
       message.success("权限保存成功！");
     } catch (e) {
       console.error(e);

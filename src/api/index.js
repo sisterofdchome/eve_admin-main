@@ -1,4 +1,4 @@
-import {baseURL, getapi, postapi} from "../utils/http";
+import {baseURL, getapi, postapi, postContentJSONPostApi} from "../utils/http";
 export const getroomapi = (data) => getapi("/reportInputController?common&id=801b54d933374f40912ab160e85ebc3d", data);
 /*
 * 文库操作
@@ -50,6 +50,8 @@ export const postUserListJson  = (data) => postapi("/org/user/listJson", data, {
 */
 
 export const postPermissionApi  = (data) => postapi("/reportInputController?common&id=1c534328a32648e2b87b1b7fe638f674", data, {});
+
+export const updatePermissionApi  = (requestUrl,data) => postContentJSONPostApi(requestUrl, data, {});
 
 /*
 * 获取部门树权限
