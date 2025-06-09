@@ -2,14 +2,12 @@
   <a-popover v-model:visible="popoverVisible" trigger="click" placement="bottomLeft" overlayClassName="add-type-file">
     <template #title>
       <div class="add-type-box">
-        <div class="add-type-title">通用文档</div>
+        <!-- <div class="add-type-title">通用文档</div>
         <div class="type-lists">
-          <!-- <svg-icon name="xz" width="20px" height="20px"></svg-icon> -->
           <div class="type-item">
             <img src="../assets/libary/word.png" class="type-icon" />
             <div class="type-name">Word</div>
           </div>
-          <div class="type-item"></div>
         </div>
         <div class="add-type-title">office套件</div>
         <div class="type-lists">
@@ -29,8 +27,8 @@
             <img src="../assets/libary/csv.png" class="type-icon" />
             <div class="type-name">CSV</div>
           </div>
-        </div>
-        <div class="add-type-title">更多</div>
+        </div> -->
+        <div class="add-type-title">新建</div>
         <div class="type-lists">
           <div class="type-item" @click="handleLibraryClick('wk')">
             <img src="../assets/libary/libary.png" class="type-icon" />
@@ -49,7 +47,7 @@
   </a-popover>
 
   <a-button style="margin-left: 15px" @click="handleUploadClick('upload')"
-    ><template #icon> <DownloadOutlined /> </template>导入</a-button
+    ><template #icon> <DownloadOutlined /> </template>上传文件</a-button
   >
   <!-- 新建文库 弹窗 -->
   <a-modal v-model:visible="libraryVisible" :title="'新建' + title" @ok="libraryHandleOk()">
@@ -163,11 +161,11 @@
       treeSelectRef.value.handleVisible(type);
     }
   };
-  // 导入文件
+  // 文件上传
   const handleUploadClick = (type) => {
     popoverVisible.value = false; // 关闭popover
 
-    title.value = "文件导入";
+    title.value = "文件上传";
     if (selectedChildren.value > "0") {
       uploadVisible.value = true; // 如果大于 0 ，直接弹出上传文件 弹窗
     } else {

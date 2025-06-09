@@ -1,4 +1,5 @@
 import axios from "axios";
+import router from "@/router";
 import {message} from "ant-design-vue";
 
 // 从 vite 的环境变量中读取，注意要加 `import.meta.env`

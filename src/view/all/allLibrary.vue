@@ -7,7 +7,8 @@
       <div class="library">
         <a-card
           hoverable
-          style="width: 150px; height: 200px"
+          style="width: 170px; height: 224px; padding: 12px; background: #f5f6f7"
+          :bodyStyle="{ padding: '12px 0', borderRadius: '0 0 8px 8px' }"
           :class="{ 'hover-card': item.isHover }"
           @mouseenter="() => handleHover(item, true)"
           @mouseleave="() => handleHover(item, false)"
@@ -222,8 +223,8 @@
     position: absolute;
     top: -2px;
     left: -2px;
-    width: 152px;
-    height: 202px;
+    width: 172px;
+    height: 226px;
     background: rgba(24, 144, 255, 0.9);
     display: flex;
     align-items: center;

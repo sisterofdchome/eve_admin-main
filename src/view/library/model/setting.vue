@@ -19,15 +19,13 @@
                 <a-textarea v-model:value="formState.description" placeholder="请输入文库描述" :rows="4" />
               </a-form-item>
 
-
-              <a-form-item :label="settingTitle + '创建人'" name="description" >
-                <a-input v-model:value="formState.create_name" :placeholder="'请输入' + settingTitle + '创建人'"  disabled/>
+              <a-form-item :label="settingTitle + '创建人'" name="description">
+                <a-input v-model:value="formState.create_name" :placeholder="'请输入' + settingTitle + '创建人'" disabled />
               </a-form-item>
 
               <a-form-item :label="settingTitle + '创建人ID'" name="description" style="display: none">
-                <a-input v-model:value="formState.create_by" :placeholder="'请输入' + settingTitle + '创建人'"  disabled/>
+                <a-input v-model:value="formState.create_by" :placeholder="'请输入' + settingTitle + '创建人'" disabled />
               </a-form-item>
-
             </a-form>
           </div>
           <!-- <div class="auth-box">
@@ -140,7 +138,7 @@
   import { useAppStore } from "../../../store/module/app";
   const appStore = useAppStore();
 
-  import {postlibraryapi, postFileapi, postPermissionApi, updatePermissionApi} from "../../../api/index.js";
+  import { postlibraryapi, postFileapi, postPermissionApi, updatePermissionApi } from "../../../api/index.js";
   // 引入appStore中的属性
   import qs from "qs";
   import { storeToRefs } from "pinia";
@@ -177,8 +175,7 @@
   const formState = reactive({
     classification_name: "",
     description: "",
-    create_name:"",
-
+    create_name: "",
   });
 
   onMounted(() => {
@@ -562,17 +559,11 @@
     const permissionMap = new Map();
 
     permissionGroups.value.forEach((group) => {
-      const users = group.members
-          .filter((member) => member.type === "user")
-          .map((obj) => obj.id);
+      const users = group.members.filter((member) => member.type === "user").map((obj) => obj.id);
 
-      const orgs = group.members
-          .filter((member) => member.type === "dept")
-          .map((obj) => obj.id);
+      const orgs = group.members.filter((member) => member.type === "dept").map((obj) => obj.id);
 
-      const user_permission = allOptions
-          .map((option) => (group.permissions.includes(option) ? "1" : "0"))
-          .join("");
+      const user_permission = allOptions.map((option) => (group.permissions.includes(option) ? "1" : "0")).join("");
 
       if (!permissionMap.has(user_permission)) {
         if (users.length === 0 && orgs.length === 0) return;
@@ -592,9 +583,9 @@
         user_permission: key,
       });
     });
-    let requestUrl =    "/reportInputController?common&id=1c534328a32648e2b87b1b7fe638f674&type=updateWithUser" +  "&classification_tree_id=" + id_.value;
+    let requestUrl = "/reportInputController?common&id=1c534328a32648e2b87b1b7fe638f674&type=updateWithUser" + "&classification_tree_id=" + id_.value;
     try {
-      const res = await updatePermissionApi(requestUrl,JSON.stringify(requestData))
+      const res = await updatePermissionApi(requestUrl, JSON.stringify(requestData));
       message.success("权限保存成功！");
     } catch (e) {
       console.error(e);
@@ -603,11 +594,6 @@
       isSubmit.value = false;
     }
   };
-
-
-
-
-
 
   // 将二进制转化为数组   1111 为【1，2，3，4】 0001 为 [4]
   function convertBinaryStringToPositionArray(binaryStr) {
@@ -778,7 +764,7 @@
     flex-wrap: wrap;
     margin-top: 16px;
     grid-column-gap: 16px;
-    grid-row-gap: 16px;
+    grid-row-gap: 2px;
   }
   /* 添加样式 */
   .user-item {
