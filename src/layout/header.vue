@@ -47,7 +47,7 @@
   </a-popover>
 
   <a-button style="margin-left: 15px" @click="handleUploadClick('upload')"
-    ><template #icon> <DownloadOutlined /> </template>上传文件</a-button
+    ><template #icon> <UploadOutlined /></template>上传文件</a-button
   >
   <!-- 新建文库 弹窗 -->
   <a-modal v-model:visible="libraryVisible" :title="'新建' + title" @ok="libraryHandleOk()">
@@ -78,7 +78,7 @@
 
   import CustomUpload from "../components/customUpload.vue";
   import TreeSelect from "../view/library/model/treeSelect.vue";
-  import { PlusOutlined, DownloadOutlined } from "@ant-design/icons-vue";
+  import { PlusOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons-vue";
   import { postlibraryapi, postFileapi } from "../api/index";
   import { storeToRefs } from "pinia";
 
