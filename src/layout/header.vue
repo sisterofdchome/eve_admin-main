@@ -53,6 +53,33 @@
   <a-modal v-model:visible="libraryVisible" :title="'新建' + title" @ok="libraryHandleOk()">
     <!-- <h1>{{ selectFolderOrLibrary }}</h1>
     <h1>{{ "选中的value" + value }}</h1> -->
+    <div class="cover-box">
+      <div class="cover-show"><img :src="selectedCover" /><!----></div>
+      <div class="select-cover-box">
+        <div class="type-box">
+          <div class="el-scrollbar">
+            <div class="el-scrollbar__wrap el-scrollbar__wrap--hidden-default">
+              <div class="el-scrollbar__view" style="">
+                <div class="type-items">
+                  <div class="type-item" v-for="(item, index) in imgList" :class="{ active: activeType === index }" @click="handleTypeClick(index)">{{ item.type }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="img-box">
+          <div class="el-scrollbar">
+            <div class="el-scrollbar__wrap el-scrollbar__wrap--hidden-default">
+              <div class="el-scrollbar__view" style="">
+                <div class="img-item" v-for="item in imgList[activeType].children" @click="handleCoverClick(item)">
+                  <img :src="item" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <a-form ref="libraryformRef" :model="LibraryForm" name="basic" :label-col="{ span: 5 }" autocomplete="off" style="padding-top: 20px">
       <a-form-item :label="title + '名称'" name="libraryName" :rules="[{ required: true, message: '请填写名称' }]">
         <a-input v-model:value="LibraryForm.libraryName" :placeholder="'请输入' + title" />
@@ -81,6 +108,28 @@
   import { PlusOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons-vue";
   import { postlibraryapi, postFileapi } from "../api/index";
   import { storeToRefs } from "pinia";
+
+  import a1 from "@/assets/cover/a1.png";
+  import a2 from "@/assets/cover/a2.png";
+  import b1 from "@/assets/cover/b1.png";
+  import b2 from "@/assets/cover/b2.png";
+  const imgList = reactive([
+    {
+      img: a1,
+      type: "全部",
+      children: [a1, a2, b1, b2],
+    },
+    {
+      img: b2,
+      type: "a类",
+      children: [a1, a2],
+    },
+    {
+      img: "@/assets/cover/a1.png",
+      type: "b类",
+      children: [b1, b2],
+    },
+  ]);
 
   const appStore = useAppStore();
   const popoverVisible = ref(false);
@@ -171,6 +220,18 @@
     } else {
       treeSelectRef.value.handleVisible(type);
     }
+  };
+
+  const activeType = ref(0);
+  const selectedCover = ref(a1);
+
+  const handleTypeClick = (type) => {
+    activeType.value = type;
+  };
+
+  const handleCoverClick = (cover) => {
+    selectedCover.value = cover;
+    console.log(cover);
   };
   /**
    * @description: 新建文库
@@ -319,5 +380,108 @@
   }
   .add-type-box .type-lists .type-item:hover {
     background: #f5f6f7;
+  }
+
+  .cover-box {
+    display: flex;
+  }
+  .cover-box .cover-show {
+    width: 152px;
+    height: 152px;
+    overflow: hidden;
+    border-radius: 6px;
+    position: relative;
+  }
+  .cover-box .cover-show img {
+    width: 152px;
+    height: 152px;
+  }
+  .cover-box .select-cover-box {
+    margin-left: 8px;
+    width: calc(100% - 160px);
+  }
+  .cover-box .select-cover-box .type-box {
+    display: flex;
+    align-items: center;
+    height: 32px;
+  }
+  .el-scrollbar {
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+  }
+  .cover-box .select-cover-box .type-box .line {
+    height: 24px;
+    width: 1px;
+    background-color: #d7d8db;
+    margin-bottom: 8px;
+  }
+  .cover-box .select-cover-box .type-box .upload-box {
+    height: 24px;
+    margin-bottom: 4px;
+    display: flex;
+    width: 48px;
+    color: #1e6fff;
+    font-size: 12px;
+  }
+  .cover-box .select-cover-box .img-box {
+    height: 120px;
+  }
+  .cover-box .select-cover-box .type-box .type-items {
+    display: flex;
+    align-items: center;
+    width: calc(100% + -0px);
+    box-sizing: border-box;
+    font-size: 12px;
+    word-break: keep-all;
+  }
+  .cover-box .select-cover-box .type-box .type-items .type-item {
+    padding: 0 8px;
+    height: 24px;
+    line-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    font-family: SourceHanSansCN-Regular;
+    margin-right: 4px;
+  }
+  .cover-box .select-cover-box .type-box .type-items .type-item:hover,
+  .cover-box .select-cover-box .type-box .type-items .active {
+    background: #e4edff;
+    color: #1e6fff;
+  }
+
+  .el-scrollbar__wrap--hidden-default {
+    scrollbar-width: none;
+  }
+  .el-scrollbar__wrap {
+    overflow: auto;
+    height: 100%;
+  }
+  .cover-box .select-cover-box .img-box .el-scrollbar__view {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    flex-wrap: wrap;
+    grid-column-gap: 8px;
+    grid-row-gap: 8px;
+    padding-right: 8px;
+  }
+
+  .cover-box .select-cover-box .img-box .img-item {
+    height: 56px;
+    width: 56px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .cover-box .select-cover-box .img-box .active {
+    border-color: #1e6fff;
+  }
+  .cover-box .select-cover-box .img-box .img-item img {
+    height: 56px;
+    width: 56px;
   }
 </style>
