@@ -4,7 +4,7 @@ import {message} from "ant-design-vue";
 
 // 从 vite 的环境变量中读取，注意要加 `import.meta.env`
 export const baseURL = import.meta.env.VITE_GLOB_DOMAIN_URL;
-
+let isRefreshing = false; // 防止多次跳转
 // 创建实例
 const instance = axios.create({
     baseURL: baseURL,
@@ -26,6 +26,32 @@ instance.interceptors.request.use(
     },
     (err) => {
         return Promise.reject(err); // 将错误消息挂到 promise 的失败函数上
+    }
+);
+
+
+instance.interceptors.response.use(
+    (response) => {
+        // if (response.data.code === 401){
+        //     if (!isRefreshing) {
+        //         isRefreshing = true;
+        //         message.error("登录失效，请重新登录");
+        //         router.push('/login').finally(() => {
+        //             isRefreshing = false; // 跳转完成后恢复
+        //         });
+        //     }
+        //     return Promise.reject("未授权或登录已失效");
+        // }
+        if (response.data.code !== 1) {
+            message.error(response.data.msg || "请求失败");
+            return Promise.reject(response.data.msg || "请求失败");
+        }
+        // .data.rows || response.data.data; //这里的response就是请求成功后的res , response.data即是请求成功后回调函数内的参数res.data
+
+        return response
+    },
+    (err) => {
+        return Promise.reject(err); //将错误消息挂到promise的失败函数上
     }
 );
 

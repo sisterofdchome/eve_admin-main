@@ -1,4 +1,5 @@
 import {baseURL, getapi, postapi, postContentJSONPostApi} from "../utils/http";
+
 export const getroomapi = (data) => getapi("/reportInputController?common&id=801b54d933374f40912ab160e85ebc3d", data);
 /*
 * 文库操作
@@ -30,43 +31,48 @@ export const postFileUpload = (data) => postapi("/system/file/fileUpload?code=&b
 *
 */
 
-export const postDownloadFile  = (data) => postapi("/jxload/bulid", data, {});
+export const postDownloadFile = (data) => postapi("/jxload/bulid", data, {});
 
 /*
 * 部门公司列表
 *
 */
 
-export const postTreeDataByDemid  = (data) => postapi("/org/org/getTreeDataByDemid", data, {});
+export const postTreeDataByDemid = (data) => postapi("/org/org/getTreeDataByDemid", data, {});
 /*
 * 人员列表
 *
 */
 
-export const postUserListJson  = (data) => postapi("/org/user/listJson", data, {});
+export const postUserListJson = (data) => postapi("/org/user/listJson", data, {});
 /*
 * 资料库文件夹权限配置
 *
 */
 
-export const postPermissionApi  = (data) => postapi("/reportInputController?common&id=1c534328a32648e2b87b1b7fe638f674", data, {});
+export const postPermissionApi = (data) => postapi("/reportInputController?common&id=1c534328a32648e2b87b1b7fe638f674", data, {});
 
-export const updatePermissionApi  = (requestUrl,data) => postContentJSONPostApi(requestUrl, data, {});
+export const updatePermissionApi = (requestUrl, data) => postContentJSONPostApi(requestUrl, data, {});
 
 /*
 * 获取部门树权限
 *
 */
-export const getOrgTreeApi  = (data) => getapi("/reportInputController?common&id=0e5e211791ab432f891cb97395f87e93", data);
+export const getOrgTreeApi = (data) => getapi("/reportInputController?common&id=0e5e211791ab432f891cb97395f87e93", data);
 /*
 * 获取部门树权限
 *
 */
-export const getLogApi  = (data) => postapi("/reportInputController?common&id=797e8725120c47c2a61807f1786b2967", data);
+export const getLogApi = (data) => postapi("/reportInputController?common&id=797e8725120c47c2a61807f1786b2967", data);
 
 //    http://localhost:9015/luqiao/supervise/system/file/fileUpload?code=&biz_type=
 //    `/luqiao/system/file/fileUpload?code=&biz_type=CLOUD_DISK`
 
-export const uploadFileApi =  baseURL + "system/file/fileUpload?code=&biz_type=CLOUD_DISK"
+export const uploadFileApi = baseURL + "system/file/fileUpload?code=&biz_type=CLOUD_DISK"
 
 
+export const getFileAuthApi = (data) => postapi("/reportInputController?common&id=4b907bebe0114d70a5b9a984b6c8c530", data);
+
+// 获取融资部的文件的接口等
+
+// 获取文件审核的列表

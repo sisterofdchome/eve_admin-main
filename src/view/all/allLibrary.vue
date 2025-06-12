@@ -19,12 +19,16 @@
         >
           <template #cover>
             <!-- 使用默认封面或动态封面 -->
-            <img alt="example" src="../../assets/libary/cover.png" v-if="!item.cover" />
-            <img v-else :src="item.cover" alt="自定义封面" />
+            <img alt="example" src="../../assets/libary/cover.png" v-if="!item.folder_cover" />
+            <img v-else :src="item.folder_cover" alt="自定义封面" />
           </template>
           <a-card-meta :title="item.name" style="align-items: center">
             <!-- 可选：显示文件数量 -->
-            <template #description v-if="item.description"> {{ item.description }} </template>
+            <template #description v-if="item.description">
+              <div class="ellipsis">
+
+              {{ item.description }}
+              </div></template>
           </a-card-meta>
 
           <!-- 新增悬停遮罩层 -->
@@ -53,7 +57,7 @@
       </div>
     </a-spin>
 
-    <Setting ref="settingRef" @updateSuccess="handleUpdateSuccess"></Setting>
+    <Setting ref="settingRef" @updateSuccess="handleUpdateSuccess" :title="settingTitle"></Setting>
   </div>
 </template>
 
@@ -82,6 +86,7 @@
   const loading = ref(false); // 新增加载状态
   const router = useRouter();
   const settingRef = ref(null);
+  const settingTitle = ref("文库");
 
   // 使用props接收参数
   const props = defineProps({
@@ -250,4 +255,11 @@
   .ant-card-body {
     padding: 16px;
   }
+
+  .ellipsis {
+    white-space: nowrap;    /* 不换行 */
+    overflow: hidden;       /* 超出隐藏 */
+    text-overflow: ellipsis;/* 超出显示 ... */
+  }
+
 </style>

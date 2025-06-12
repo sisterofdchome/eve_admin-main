@@ -42,6 +42,12 @@ const router = createRouter({
           component: () => import('../view/my/myLibrary.vue'),
           props: true
         },
+        {
+          path: '/fileAudit/:title',
+          name: 'fileAudit',
+          component: () => import('../view/fileAudit/fileAudit.vue'),
+          props: true
+        },
       ]
     },
 

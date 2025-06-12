@@ -153,12 +153,7 @@
   };
   const menuIndex = ref(-12);
   const menuList = ref([
-    // {
-    //   title: "首页",
-    //   key: "-11",
-    //   icon: "home",
-    //   url: "/index",
-    // },
+
     {
       title: "全部文库",
       key: "-12",
@@ -174,24 +169,7 @@
       url: "/myLibrary/我的文库",
       isExpand: true,
       children: [
-        // {
-        //   title: "文库-4",
-        //   key: "8",
-        //   icon: "svg-wxz",
-        //   url: "/library",
-        // },
-        // {
-        //   title: "文库-5",
-        //   key: "6",
-        //   icon: "svg-wxz",
-        //   url: "/library",
-        // },
-        // {
-        //   title: "文库-6",
-        //   key: "7",
-        //   icon: "svg-wxz",
-        //   url: "/library",
-        // },
+
       ],
     },
     {
@@ -206,16 +184,33 @@
       icon: "recycle",
       url: "/recycle",
     },
+
+
+
+    {
+      title: "系统设置",
+      key: "-16",
+      url: "/setting",
+    },
+    {
+      title: "文件审核",
+      key: "-17",
+      url: "/fileAudit",
+      icon: "",
+    },
+
+
+
   ]);
 
   onMounted(() => {
-    setTimeout(() => {
-      router.push({
-        // path: "/index", // 直接使用配置的 url
-        path: "/allLibrary/全部文库", // 直接使用配置的 url
-      });
-      leftLibraryList();
-    }, 500);
+    // setTimeout(() => {
+    //   router.push({
+    //     // path: "/index", // 直接使用配置的 url
+    //     path: "/allLibrary/全部文库", // 直接使用配置的 url
+    //   });
+    //   leftLibraryList();
+    // }, 500);
   });
 
   // 获取文库列表

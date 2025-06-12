@@ -8,6 +8,7 @@ const routerComponents = {
   // 首页
   index: () => import('../view/index/index.vue'),
   recycle: () => import('../view/recycle/recycle.vue'),
+  fileAudit: () => import('../view/fileAudit/fileAudit.vue'),
 }
 
 export default routerComponents

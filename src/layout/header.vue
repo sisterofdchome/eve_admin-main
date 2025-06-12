@@ -72,7 +72,7 @@
             <div class="el-scrollbar__wrap el-scrollbar__wrap--hidden-default">
               <div class="el-scrollbar__view" style="">
                 <div class="img-item" v-for="item in imgList[activeType].children" @click="handleCoverClick(item)">
-                  <img :src="item" />
+                  <img :src="item"  />
                 </div>
               </div>
             </div>
@@ -119,16 +119,16 @@
       type: "全部",
       children: [a1, a2, b1, b2],
     },
-    {
-      img: b2,
-      type: "a类",
-      children: [a1, a2],
-    },
-    {
-      img: "@/assets/cover/a1.png",
-      type: "b类",
-      children: [b1, b2],
-    },
+    // {
+    //   img: b2,
+    //   type: "a类",
+    //   children: [a1, a2],
+    // },
+    // {
+    //   img: "@/assets/cover/a1.png",
+    //   type: "b类",
+    //   children: [b1, b2],
+    // },
   ]);
 
   const appStore = useAppStore();
@@ -155,6 +155,7 @@
   });
 
   const LibraryForm = reactive({
+    libraryCover: "",
     libraryName: "",
     libraryContent: "",
   });
@@ -224,6 +225,8 @@
 
   const activeType = ref(0);
   const selectedCover = ref(a1);
+  // 初始化选择的封面
+  LibraryForm.libraryCover= a1
 
   const handleTypeClick = (type) => {
     activeType.value = type;
@@ -231,6 +234,7 @@
 
   const handleCoverClick = (cover) => {
     selectedCover.value = cover;
+    LibraryForm.libraryCover= cover
     console.log(cover);
   };
   /**
@@ -248,6 +252,7 @@
           type: "add",
           classification_name: LibraryForm.libraryName,
           description: LibraryForm.libraryContent,
+          folder_cover:  LibraryForm.libraryCover,
           pid: fatherId,
         };
         if (title.value == "文库") {
@@ -255,7 +260,6 @@
         }
 
         const response = await postlibraryapi(qs.stringify(formData)); // 调用接口
-
         if (response.data.obj.error == "") {
           console.log("接口请求成功:", response);
           // 子目录选中项

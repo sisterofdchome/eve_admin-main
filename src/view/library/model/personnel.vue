@@ -1,5 +1,5 @@
 <template>
-  <a-drawer title="协同人员" :placement="placement" :closable="false" :visible="visible" @close="onClose" width="300px" class="setting-drawer">
+  <a-drawer title="协同人员" :placement="placement" :closable="false" :visible="visible" @close="onClose" width="450px" class="setting-drawer">
     <div class="know-set-body">
       <a-tabs v-model:activeKey="activeKey">
         <a-tab-pane key="1" tab="成员"

@@ -16,8 +16,8 @@
         >
           <template #cover>
             <!-- 使用默认封面或动态封面 -->
-            <img alt="example" src="../../assets/libary/cover.png" v-if="!item.cover" />
-            <img v-else :src="item.cover" alt="自定义封面" />
+            <img alt="example" src="../../assets/libary/cover.png" v-if="!item.folder_cover" />
+            <img v-else :src="item.folder_cover" alt="自定义封面" />
           </template>
           <a-card-meta :title="item.name" style="align-items: center">
             <!-- 可选：显示文件数量 -->
