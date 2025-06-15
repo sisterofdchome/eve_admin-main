@@ -7,11 +7,12 @@
 
       <a-form layout="inline" @submit.prevent="onSearch">
         <a-form-item label="文件名称">
-          <a-input v-model:value="searchForm.file_name" placeholder="请输入文件名称" allow-clear />
+          <a-input v-model:value="searchForm.file_name" placeholder="请输入文件名称" allow-clear/>
         </a-form-item>
 
         <a-form-item label="审核状态">
-          <a-select v-model:value="searchForm.audit_status" placeholder="请选择审核状态" allow-clear style="width: 150px;">
+          <a-select v-model:value="searchForm.audit_status" placeholder="请选择审核状态" allow-clear
+                    style="width: 150px;">
             <a-select-option value="待审核">待审核</a-select-option>
             <a-select-option value="已通过">已通过</a-select-option>
             <a-select-option value="已驳回">已驳回</a-select-option>
@@ -19,7 +20,7 @@
         </a-form-item>
 
 
-<!--        TODO -->
+        <!--        TODO -->
         <a-form-item label="所属分类">
           <a-tree-select
               v-model:value="searchForm.classification_id"
@@ -45,7 +46,6 @@
     </div>
 
 
-
     <a-table
         :columns="columns"
         :data-source="dataSource"
@@ -54,6 +54,23 @@
         row-key="id"
     >
       <template #bodyCell="{ column, record }">
+
+
+        <template v-if="column.dataIndex === 'audit_status'">
+          <div v-if="record.audit_status == '待审核'">
+            <a-tag color="blue">进行中</a-tag>
+          </div>
+          <div v-else-if="record.audit_status == '审核通过'">
+            <a-tag color="green">审核通过</a-tag>
+          </div>
+          <div v-else-if="record.audit_status == '审核拒绝'">
+            <a-tag color="red">审核拒绝</a-tag>
+          </div>
+          <div v-else-if="record.audit_status == '4'">
+            <a-tag color="orange">申请延期</a-tag>
+          </div>
+        </template>
+
         <template v-if="column.dataIndex === 'operation'">
           <div class="editable-row-operations">
             <!-- 待审核状态 -->
@@ -95,7 +112,19 @@
       </template>
     </a-table>
 
-    <Personnel ref="personnelRef" ></Personnel>
+    <!-- 审核抽屉组件 -->
+    <AuditDrawer
+        v-model:visible="drawerVisible"
+        v-model:indexNav="indexNav"
+        :record="currentRecord"
+        :loading="loading"
+        :auditType="fileAudit"
+        :componentDisabled="isComponentDisabled"
+        @pass="onPass"
+        @reject="onReject"
+        @cancel="onCancel"
+        @show-log="showLog"
+    />
   </div>
 </template>
 
@@ -107,14 +136,26 @@ import {useRoute} from "vue-router";
 import {getFileAuthApi} from "../../api/index";
 import qs from "qs";
 import Personnel from "@/view/library/model/personnel.vue";
+import AuditDrawer from "@/view/fileAudit/AuditDrawer.vue";
 
 const isAudit = ref(true) // 替换为你的逻辑
 const dataSource = ref([]) // 数据源
 const route = useRoute();
 const title = ref(route.query.title);
 const classificationTreeData = ref([]);
+const personnelRef = ref(null);
+const settingRef = ref(null);
+const settingTitle = ref('')
+const auditDrawerRef = ref(null);
+const drawerVisible = ref(false)
+const currentRecord = ref(null);
+const indexNav = ref(0)
+const fileAudit = ref("")
+const loading = ref(false)
+const isComponentDisabled = ref(false)
+
 const pagination = reactive({
-  type:"",
+  type: "",
   current: 1,
   pageSize: 10,
   total: 0,
@@ -154,7 +195,7 @@ const columns = [
   {
     title: "文件大小",
     dataIndex: "file_size",
-    customRender: ({ text }) => `${(text / 1024).toFixed(2)} KB`, // 转换为 KB 显示
+    customRender: ({text}) => `${(text / 1024).toFixed(2)} KB`, // 转换为 KB 显示
   },
   {
     title: "审核状态",
@@ -184,7 +225,7 @@ const columns = [
 
 onMounted(() => {
   fetchData();
-  getTreeData( 'tree');
+  getTreeData('tree');
 });
 
 
@@ -214,7 +255,7 @@ const fetchData = async () => {
   }
 }
 
-const isGetTreeRequest = ref( false)
+const isGetTreeRequest = ref(false)
 
 const getTreeData = async (type) => {
   if (isGetTreeRequest.value) return  // 避免重复请求
@@ -261,10 +302,17 @@ function onSearch() {
 // 操作函数
 function onEdit(record) {
   console.log('编辑', record)
+  currentRecord.value = record
+  drawerVisible.value = true
+  fileAudit.value = "edit"
+
 }
 
 function onDelete(record) {
   console.log('删除', record)
+  currentRecord.value = record
+  drawerVisible.value = true
+  fileAudit.value = "delete"
 }
 
 function onDownload(record) {
@@ -273,6 +321,10 @@ function onDownload(record) {
 
 function onPass(record) {
   console.log('通过', record)
+  currentRecord.value = record
+  drawerVisible.value = true
+  fileAudit.value = "pass"
+  isComponentDisabled.value = true
 }
 
 function onReject(record) {
@@ -281,11 +333,21 @@ function onReject(record) {
 
 function onCancel(record) {
   console.log('取消', record)
+  drawerVisible.value = false
 }
 
-function showLog(record){
+function showLog(record) {
   console.log('查看日志', record)
+  currentRecord.value = record
+  drawerVisible.value = true
+  fileAudit.value = "log"
+  isComponentDisabled.value = true
 }
+
+
+
+
+
 
 </script>
 

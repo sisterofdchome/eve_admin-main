@@ -48,17 +48,18 @@ const menu = [{
         icon: 'DeleteOutlined',
         component: 'recycle',
     },
-
     {
         name: '系统设置',
         label: '系统设置',
         key: '/setting',
+        icon: 'SettingOutlined',
         component: 'setting',
     },
     {
         name: '文件审核',
         label: '文件审核',
         key: '/fileAudit',
+        icon: 'ZhihuOutlined',
         component: 'fileAudit',
     },
 

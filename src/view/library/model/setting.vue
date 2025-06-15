@@ -164,11 +164,9 @@
         </div>
         <div class="button-box">
           <a-button type="primary" @click="saveAllPermissions" :loading="isSubmit">保存设置</a-button>
-
           <a-button style="margin-left: 12px" @click="visible = false">取消</a-button>
         </div>
       </div>
-
       <!-- 添加权限组模态框 -->
       <a-modal v-model:visible="addGroupModalVisible" title="添加权限组" @ok="handleAddGroup"
                @cancel="addGroupModalVisible = false">
@@ -210,12 +208,17 @@ import b2 from "@/assets/cover/b2.png";
 
 const {selectedKeys, selectedChildren} = storeToRefs(appStore);
 
+const indexNav = ref(0);
 // 接收父组件传递的 props
 const props = defineProps({
   title: {
     type: String, // 类型可以根据需要调整，例如 Number, Object 等
     default: "", // 默认值
   },
+  // indexNav:{
+  //   type: Number,
+  //   default: 0,
+  // }
 });
 
 const activeType = ref(0);
@@ -359,7 +362,7 @@ const onCheckAllChange = (e) => {
 const onFinishFailed = (errorInfo) => {
   console.log("Failed:", errorInfo);
 };
-const indexNav = ref(0);
+
 const visible = ref(false);
 const placement = ref("right");
 const onClose = () => {

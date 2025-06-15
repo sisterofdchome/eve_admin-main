@@ -33,19 +33,22 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
     (response) => {
         // if (response.data.code === 401){
-        //     if (!isRefreshing) {
-        //         isRefreshing = true;
-        //         message.error("登录失效，请重新登录");
-        //         router.push('/login').finally(() => {
-        //             isRefreshing = false; // 跳转完成后恢复
-        //         });
-        //     }
-        //     return Promise.reject("未授权或登录已失效");
+
         // }
-        if (response.data.code !== 1) {
+        if (response.data.code === 40002) {
+            if (!isRefreshing) {
+                isRefreshing = true;
+                message.error("登录失效，请重新登录");
+                router.push('/login').finally(() => {
+                    isRefreshing = false; // 跳转完成后恢复
+                });
+            }
+            return Promise.reject("未授权或登录已失效");
+        } else if (response.data.code !== 1) {
             message.error(response.data.msg || "请求失败");
             return Promise.reject(response.data.msg || "请求失败");
         }
+
         // .data.rows || response.data.data; //这里的response就是请求成功后的res , response.data即是请求成功后回调函数内的参数res.data
 
         return response
