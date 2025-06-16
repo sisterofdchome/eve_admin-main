@@ -18,7 +18,7 @@
             <!-- <a href="javascript:;" @click="down(file)" style="padding: 0 12px">下载</a> -->
             <a href="javascript:;" @click="delFile(file)">
               <!-- <icon class="fa fa-times"></icon> -->
-              X
+              <img src="../assets/x.png" alt="" height="16px" />
             </a>
           </div>
         </div>

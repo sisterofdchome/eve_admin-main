@@ -2,7 +2,7 @@
   <div>
     <Tool :isFullscreen="isFullscreen" :toggleFullscreen="toggleFullscreen" :collectValue="menuIndex" :fileItem="fileList.find((item) => item.id_ === menuIndex)"></Tool>
     <div class="knowledge-info-body">
-      <div class="knowledge-left" style="width: 240px">
+      <div class="knowledge-left" :style="{ width: leftWidth + 'px' }">
         <div class="knowledge-tree-search">
           <!-- <a-input-search v-model:value="value" placeholder="搜索" style="width: 200px" @search="onSearch" /> -->
           <a-input v-model:value="userName" placeholder="搜索">
@@ -153,7 +153,10 @@
           </div>
         </a-spin>
       </div>
-      <div class="tree-drop-width-line" style="left: 240px"></div>
+      <!-- <div class="tree-drop-width-line" style="left: 240px"><ColumnWidthOutlined /></div> -->
+      <div class="tree-drop-width-line" :style="{ left: leftWidth + 'px' }" @mousedown="startResize">
+        <ColumnWidthOutlined />
+      </div>
       <!-- <div class="knowledge-right" style="width: calc(100% - 240px); height: calc(100vh - 127px); overflow: overlay">
         <div class="file-view-box"></div>
         <Comment></Comment>
@@ -213,8 +216,9 @@
     ExclamationCircleOutlined,
     HeartOutlined,
     HeartFilled,
+    ColumnWidthOutlined,
   } from "@ant-design/icons-vue";
-  import { ref, h, onMounted, reactive, watch } from "vue";
+  import { ref, h, onMounted, reactive, watch, onBeforeUnmount } from "vue";
   import { useRoute } from "vue-router";
   import Tool from "./model/tool.vue";
   import Comment from "./model/comment.vue";
@@ -504,6 +508,58 @@
   // 应用防抖的 leftLibraryTree
   const leftLibraryTree = debounce(fetchLibraryTree, 100); // 300ms 防抖
 
+  // 添加左侧宽度变量
+  const leftWidth = ref(290);
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  // 开始调整大小
+  const startResize = (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startWidth = leftWidth.value;
+
+    // 添加事件监听
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+
+    // 设置光标样式
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  // 鼠标移动处理 - 修复位置计算问题
+  const onMouseMove = (e) => {
+    if (!isResizing) return;
+
+    // 计算鼠标移动距离（考虑拖拽线自身的宽度）
+    const diff = e.clientX - startX;
+    const newWidth = Math.max(290, Math.min(450, startWidth + diff));
+
+    // 立即更新宽度
+    leftWidth.value = newWidth;
+  };
+
+  // 鼠标释放处理
+  const onMouseUp = () => {
+    isResizing = false;
+
+    // 移除事件监听
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+
+    // 恢复光标样式
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  };
+
+  // 组件卸载时清理
+  onBeforeUnmount(() => {
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+  });
+
   // 初始化时调用
   onMounted(() => {
     // 优先使用 Pinia 中的 selectedChildren（当前路径）
@@ -615,10 +671,11 @@
     min-width: 240px;
   }
 
+  /* 添加拖拽线样式增强 */
   .tree-drop-width-line {
-    height: 22px;
-    width: 22px;
-    min-width: 22px;
+    height: 24px;
+    width: 24px;
+    min-width: 24px;
     position: absolute;
     z-index: 9;
     cursor: col-resize;
@@ -627,14 +684,21 @@
     justify-content: center;
     top: 50%;
     transform: translate(calc(-50% + 2px)) translateY(-50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
-  .knowledge-other {
-    position: fixed;
-    right: 0;
-    height: calc(100vh - 112px);
-    max-width: 268px;
-    z-index: 6;
+  .tree-drop-width-line:hover {
+    background-color: #f0f0f0;
+    border-color: #d0d0d0;
+  }
+
+  /* 确保右侧区域宽度自适应 */
+  .knowledge-right {
+    flex: 1;
+    min-width: 0; /* 防止内容溢出 */
   }
 
   .knowledge-tree-search {
@@ -664,7 +728,7 @@
 
   .libary-info {
     margin-left: 12px;
-    width: 146px;
+    /* width: 146px; */
     overflow: hidden;
   }
 
