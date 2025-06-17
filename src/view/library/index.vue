@@ -509,7 +509,7 @@
   const leftLibraryTree = debounce(fetchLibraryTree, 100); // 300ms 防抖
 
   // 添加左侧宽度变量
-  const leftWidth = ref(290);
+  const leftWidth = ref(200);
   let isResizing = false;
   let startX = 0;
   let startWidth = 0;
@@ -535,7 +535,8 @@
 
     // 计算鼠标移动距离（考虑拖拽线自身的宽度）
     const diff = e.clientX - startX;
-    const newWidth = Math.max(290, Math.min(450, startWidth + diff));
+    const newWidth = Math.max(200, Math.min(450, startWidth + diff));
+    console.log(newWidth);
 
     // 立即更新宽度
     leftWidth.value = newWidth;
@@ -645,6 +646,7 @@
   };
   // 排序
   const changeOrderList = async (item) => {
+    loading.value = true;
     orderIndex.value = item.id;
     const formData = {
       type: "list",
@@ -662,6 +664,8 @@
     } catch (error) {
       message.success(response.data.obj.error);
       console.error("接口请求失败:", error);
+    } finally {
+      loading.value = false;
     }
   };
 </script>

@@ -1,53 +1,54 @@
 <template>
-  <div class="knowledge-right">
-    <div class="el-scrollbar" style="padding-right: 8px">
-      <div class="el-scrollbar__wrap el-scrollbar__wrap--hidden-default">
-        <div class="el-scrollbar__view" style="">
-          <!----><!---->
-          <div class="knowledge-right-info-body">
-            <div class="info-box">
-              <div class="info-color"><img src="../../../assets/libary/cover.png" /></div>
-              <div class="info">
-                <div class="info-text">
-                  <div class="info-desc">
-                    <div class="name-type">
-                      <div class="name">{{ formState.classification_name }}</div>
-                      <!-- <div class="lable user">私有</div> -->
+  <a-spin :spinning="loading" tip="加载中...">
+    <div class="knowledge-right">
+      <div class="el-scrollbar" style="padding-right: 8px">
+        <div class="el-scrollbar__wrap el-scrollbar__wrap--hidden-default">
+          <div class="el-scrollbar__view" style="">
+            <!----><!---->
+            <div class="knowledge-right-info-body">
+              <div class="info-box">
+                <div class="info-color"><img :src="formState.folder_cover" /></div>
+                <div class="info">
+                  <div class="info-text">
+                    <div class="info-desc">
+                      <div class="name-type">
+                        <div class="name">{{ formState.classification_name }}</div>
+                        <!-- <div class="lable user">私有</div> -->
+                      </div>
+                      <div class="desc"></div>
                     </div>
-                    <div class="desc"></div>
+                    <div class="file-num">
+                      <div class="num">
+                        文件数：<span>{{ formState.number_files }}</span>
+                      </div>
+                      <div class="line"></div>
+                      <div class="num">
+                        创建者：<span>{{ formState.create_name }}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div class="file-num">
-                    <div class="num">
-                      文件数：<span>{{ formState.number_files }}</span>
-                    </div>
-                    <div class="line"></div>
-                    <div class="num">
-                      创建者：<span>{{ formState.create_name }}</span>
-                    </div>
+                  <div class="info-action" @click="settinghandle">
+                    <a-button type="primary"><SettingOutlined />文库设置</a-button>
                   </div>
                 </div>
-                <div class="info-action" @click="settinghandle">
-                  <a-button type="primary"><SettingOutlined />文库设置</a-button>
+              </div>
+              <div class="view-down-start-box">
+                <div class="show-item" style="font-weight: bold">
+                  <div class="show-title"><EyeOutlined /><span style="margin-left: 4px">浏览数</span></div>
+                  <div class="show-num">0</div>
+                </div>
+                <div class="line"></div>
+                <div class="show-item" style="font-weight: bold">
+                  <div class="show-title"><ArrowDownOutlined /><span style="margin-left: 4px">下载数</span></div>
+                  <div class="show-num">0</div>
+                </div>
+                <div class="line"></div>
+                <div class="show-item" style="font-weight: bold">
+                  <div class="show-title"><FileZipTwoTone /><span style="margin-left: 4px">文件大小</span></div>
+                  <div class="show-num">{{ formState.formattedSize }}</div>
                 </div>
               </div>
-            </div>
-            <div class="view-down-start-box">
-              <div class="show-item" style="font-weight: bold">
-                <div class="show-title"><EyeOutlined /><span style="margin-left: 4px">浏览数</span></div>
-                <div class="show-num">0</div>
-              </div>
-              <div class="line"></div>
-              <div class="show-item" style="font-weight: bold">
-                <div class="show-title"><ArrowDownOutlined /><span style="margin-left: 4px">下载数</span></div>
-                <div class="show-num">0</div>
-              </div>
-              <div class="line"></div>
-              <div class="show-item" style="font-weight: bold">
-                <div class="show-title"><FileZipTwoTone /><span style="margin-left: 4px">文件大小</span></div>
-                <div class="show-num">{{ formState.formattedSize }}</div>
-              </div>
-            </div>
-            <!-- <div class="top-file-box">
+              <!-- <div class="top-file-box">
               <div class="top-title-action">
                 <div class="title" style="font-weight: bold">推荐内容</div>
                 <div class="view-type-box">
@@ -74,16 +75,17 @@
                 
               </div>
             </div> -->
+            </div>
+            <!---->
           </div>
-          <!---->
         </div>
+        <div class="el-scrollbar__bar is-horizontal" style="display: none"><div class="el-scrollbar__thumb" style="transform: translateX(0%)"></div></div>
+        <div class="el-scrollbar__bar is-vertical" style="display: none"><div class="el-scrollbar__thumb" style="transform: translateY(0%); height: 234.429px"></div></div>
       </div>
-      <div class="el-scrollbar__bar is-horizontal" style="display: none"><div class="el-scrollbar__thumb" style="transform: translateX(0%)"></div></div>
-      <div class="el-scrollbar__bar is-vertical" style="display: none"><div class="el-scrollbar__thumb" style="transform: translateY(0%); height: 234.429px"></div></div>
-    </div>
 
-    <Setting ref="settingRef" :title="settingTitle" @updateSuccess="handleUpdateSuccess"></Setting>
-  </div>
+      <Setting ref="settingRef" :title="settingTitle" @updateSuccess="handleUpdateSuccess"></Setting>
+    </div>
+  </a-spin>
 </template>
 <script setup>
   import { SettingOutlined, ArrowDownOutlined, EyeOutlined, FileZipTwoTone } from "@ant-design/icons-vue";
@@ -108,6 +110,9 @@
     },
   });
 
+  // 基本信息加载状态
+  const loading = ref(false);
+
   onMounted(() => {
     getLibraryImformation(props.id);
   });
@@ -122,6 +127,7 @@
   });
   // 获取文库信息
   const getLibraryImformation = async (newId) => {
+    loading.value = true;
     const formData = {
       type: "get",
       id_: newId,
@@ -131,13 +137,14 @@
     if (response.data.obj.error == "") {
       console.log(response);
       dataList.value = response.data.obj.data;
-      const { classification_name, number_files, create_name, size, create_time } = response.data.obj.data;
+      const { classification_name, number_files, create_name, size, create_time, folder_cover } = response.data.obj.data;
       console.log(size);
 
       // 调用 bytesToSize 转换 size
       const formattedSize = bytesToSize(size);
-      Object.assign(formState, { classification_name, number_files, create_name, formattedSize, create_time });
+      Object.assign(formState, { classification_name, number_files, create_name, formattedSize, create_time, folder_cover });
     }
+    loading.value = false;
   };
 
   const settingRef = ref(null);

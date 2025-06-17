@@ -37,7 +37,7 @@
       </a-form>
     </div>
 
-    <a-table :dataSource="dataSource" bordered :rowKey="(record) => record.id_">
+    <a-table :dataSource="dataSource" bordered :rowKey="(record) => record.id_" :loading="isSearch">
       <a-table-column title="文件名称" dataIndex="file_name" key="file_name">
         <template #default="{ record }">
           <div class="editable-cell" @click="getPathUrl(record)"><img src="../../assets/file/doc.png" height="20px" style="margin-right: 6px" />{{ record.file_name }}</div>
