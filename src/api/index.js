@@ -65,6 +65,9 @@ export const getOrgTreeApi = (data) => getapi("/reportInputController?common&id=
 */
 export const getLogApi = (data) => postapi("/reportInputController?common&id=797e8725120c47c2a61807f1786b2967", data);
 
+
+
+
 //    http://localhost:9015/luqiao/supervise/system/file/fileUpload?code=&biz_type=
 //    `/luqiao/system/file/fileUpload?code=&biz_type=CLOUD_DISK`
 

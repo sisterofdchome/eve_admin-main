@@ -85,7 +85,7 @@
       </div>
     </div>
     <Information ref="informationRef"></Information>
-    <Personnel ref="personnelRef"></Personnel>
+    <Personnel ref="personnelRef" ></Personnel>
   </div>
 </template>
 

@@ -1,13 +1,23 @@
 <template>
   <a-drawer title="协同人员" :placement="placement" :closable="false" :visible="visible" @close="onClose" width="450px" class="setting-drawer">
     <div class="know-set-body">
+
+      <span> 文件夹： {{ selectedChildren }}</span>
+
       <a-tabs v-model:activeKey="activeKey">
-        <a-tab-pane key="1" tab="成员"
-          ><div class="user-item">
-            <div class="user-head"><img src="../../../assets/libary/personnel.png" style="width: 100%; height: 100%" /></div>
-            <span class="user-name">系统管理员</span>
-          </div></a-tab-pane
-        >
+        <a-tab-pane key="1" tab="成员">
+
+<!--          <div class="user-item">-->
+<!--                        <div class="user-head"><img src="../../../assets/libary/personnel.png" style="width: 100%; height: 100%" /></div>-->
+<!--                        <span class="user-name">系统管理员</span>-->
+<!--          </div>-->
+
+
+          <div class="user-item" v-for="item in members.data" :key="item.id_">
+            <span class="user-name">{{ item.user_name }}</span>
+          </div>
+
+        </a-tab-pane>
         <a-tab-pane key="2" tab="动态" force-render>
           <div class="dyn-item" v-for="item in logList.data" :key="item.id_">
             <div class="oper-user">
@@ -19,9 +29,7 @@
             </div>
             <!-- <span class="oper-name">{{ item.description }}</span> -->
             <div class="dc-info">
-              <span class="dc-box el-tooltip__trigger el-tooltip__trigger"
-                ><img src="../../../assets/libary/icon-wjj.png" class="icon" /><span data-v-9d2aa61e="">{{ item.description }}</span></span
-              >
+              <span class="dc-box el-tooltip__trigger el-tooltip__trigger"><img src="../../../assets/libary/icon-wjj.png" class="icon" /><span data-v-9d2aa61e="">{{ item.description }}</span></span>
             </div>
           </div>
           <!-- <div class="dyn-item">
@@ -47,7 +55,7 @@
   import { ref, reactive, watch, onMounted, toRefs } from "vue";
   import { FileZipOutlined, SettingOutlined } from "@ant-design/icons-vue";
   import { message } from "ant-design-vue";
-  import { postlibraryapi, getLogApi } from "../../../api/index.js";
+  import { postlibraryapi, getLogApi ,postPermissionApi} from "../../../api/index.js";
   import { useAppStore } from "../../../store/module/app.js";
   import qs from "qs";
 
@@ -55,7 +63,10 @@
 
   const appStore = useAppStore();
 
-  const { selectedKeys } = storeToRefs(appStore);
+  const { selectedKeys ,selectedChildren } = storeToRefs(appStore);
+  const members = ref([]);
+
+
   // 接收父组件传递的 props
   const props = defineProps({
     title: {
@@ -93,6 +104,7 @@
 
     const data = {
       type: "page",
+      record_id: selectedChildren.value,
     };
     const response = await getLogApi(qs.stringify(data));
 
@@ -101,7 +113,27 @@
       logList.value = response.data.obj.data;
       console.log(logList.value);
     }
+
+    await showMember(item)
+
+
   };
+
+
+  const showMember = async (item) => {
+
+    const data = {
+      type: "page",
+      classification_tree_id: selectedChildren.value,
+    };
+    const response = await postPermissionApi(qs.stringify(data));
+    if (response.data.obj.error == "") {
+      members.value = response.data.obj.data;
+    }
+
+  };
+
+
 
   // watch(
   //   () => appStore.refreshKey,

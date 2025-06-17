@@ -110,7 +110,6 @@
   import { useRoute } from "vue-router";
   import { getFileAuthApi } from "../../api/index";
   import qs from "qs";
-  import Personnel from "@/view/library/model/personnel.vue";
   import AuditDrawer from "@/view/fileAudit/AuditDrawer.vue";
 
   const isAudit = ref(true); // 替换为你的逻辑

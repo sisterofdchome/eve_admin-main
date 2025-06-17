@@ -45,8 +45,8 @@ instance.interceptors.response.use(
             }
             return Promise.reject("未授权或登录已失效");
         } else if (response.data.code !== 1) {
-            message.error(response.data.msg || "请求失败");
-            return Promise.reject(response.data.msg || "请求失败");
+            // message.error(response.data.msg || "请求失败");
+            // return Promise.reject(response.data.msg || "请求失败");
         }
 
         // .data.rows || response.data.data; //这里的response就是请求成功后的res , response.data即是请求成功后回调函数内的参数res.data
